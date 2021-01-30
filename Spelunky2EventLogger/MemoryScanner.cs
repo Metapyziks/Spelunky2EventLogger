@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -143,13 +144,24 @@ namespace Spelunky2EventLogger
             return -1;
         }
 
-        public IntPtr FindString(string str, Encoding encoding = null, int alignment = 1)
+        public IEnumerable<IntPtr> FindString(string str, Encoding encoding = null, int alignment = 1)
         {
             return FindBytes((encoding ?? Encoding.ASCII).GetBytes(str), alignment);
         }
 
-        public IntPtr FindBytes(byte[] bytes, int alignment = 1)
+        public IEnumerable<IntPtr> FindUInt32(uint value, int alignment = 1)
         {
+            return FindBytes(BitConverter.GetBytes(value), alignment);
+        }
+
+        public IEnumerable<IntPtr> FindUInt64(ulong value, int alignment = 1)
+        {
+            return FindBytes(BitConverter.GetBytes(value), alignment);
+        }
+
+        public IEnumerable<IntPtr> FindBytes(byte[] bytes, int alignment = 1)
+        {
+
             var minAddress = _systemInfo.minimumApplicationAddress.ToInt64();
             var maxAddress = _systemInfo.maximumApplicationAddress.ToInt64();
 
@@ -179,7 +191,7 @@ namespace Spelunky2EventLogger
 
                     if (offset != -1)
                     {
-                        return memBasicInfo.BaseAddress + offset;
+                        yield return memBasicInfo.BaseAddress + offset;
                     }
                 }
 
@@ -190,14 +202,12 @@ namespace Spelunky2EventLogger
 
                 minAddress = memBasicInfo.BaseAddress.ToInt64() + memBasicInfo.RegionSize.ToInt64();
             }
-
-            return IntPtr.Zero;
         }
 
         [ThreadStatic]
         private static byte[] ReadStructureBuffer;
 
-        public unsafe bool ReadStructure<T>(IntPtr address, out T buffer)
+        public bool ReadStructure<T>(IntPtr address, out T buffer)
             where T : struct
         {
             var size = Marshal.SizeOf<T>();

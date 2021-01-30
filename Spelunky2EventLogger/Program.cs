@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -10,6 +11,9 @@ namespace Spelunky2EventLogger
 {
     public class Program
     {
+        [AttributeUsage(AttributeTargets.Field)]
+        private class PrintAttribute : Attribute { }
+
         /// <remarks>
         /// From https://github.com/Dregu/LiveSplit-Spelunky2#game-data
         /// </remarks>
@@ -20,20 +24,26 @@ namespace Spelunky2EventLogger
             public ulong uniq;
             public uint counter;
             public byte screen;
+            [Print]
             public byte loading;
             public byte trans;
-            [MarshalAs(UnmanagedType.U1)]
+            [Print, MarshalAs(UnmanagedType.U1)]
             public bool ingame;
-            [MarshalAs(UnmanagedType.U1)]
+            [Print, MarshalAs(UnmanagedType.U1)]
             public bool playing;
             [MarshalAs(UnmanagedType.U1)]
             public bool playing2;
+            [Print]
             public byte pause;
             [MarshalAs(UnmanagedType.U1)]
             public bool pause2;
+            [Print]
             public uint igt;
+            [Print]
             public byte world;
+            [Print]
             public byte level;
+            [Print]
             public byte door;
             public uint characters;
             public uint unlockedCharacterCount;
@@ -49,14 +59,37 @@ namespace Spelunky2EventLogger
             public uint bestTime;
             public byte bestWorld;
             public byte bestLevel;
+            [Print]
             public ulong currentScore;
-            [MarshalAs(UnmanagedType.U1)]
+            [Print, MarshalAs(UnmanagedType.U1)]
             public bool udjatEyeAvailable;
             [MarshalAs(UnmanagedType.U1)]
             public bool seededRun;
         }
 
-        static async Task Main(string[] args)
+        [StructLayout(LayoutKind.Sequential, Pack = 0)]
+        private unsafe struct Player
+        {
+            [MarshalAs(UnmanagedType.U1)]
+            public bool used;
+            [Print]
+            public byte life;
+            [Print]
+            public byte numBombs;
+            [Print]
+            public byte numRopes;
+            [Print, MarshalAs(UnmanagedType.U1)]
+            public bool hasAnkh;
+            [Print, MarshalAs(UnmanagedType.U1)]
+            public bool hasKapala;
+            [Print, MarshalAs(UnmanagedType.U1)]
+            public bool isPoisoned;
+            [Print, MarshalAs(UnmanagedType.U1)]
+            public bool isCursed;
+            public fixed byte reserved[128];
+        }
+
+        private static async Task<int> Main(string[] args)
         {
             Console.WriteLine("Searching for Spelunky 2...");
             var process = await FindProcess("Spel2");
@@ -64,24 +97,48 @@ namespace Spelunky2EventLogger
             using var scanner = new MemoryScanner(process);
 
             Console.WriteLine("Searching for AutoSplitter struct...");
-            var address = scanner.FindString("DREGUASL", Encoding.ASCII, 8);
 
-            Console.WriteLine($"Address: 0x{address.ToInt64():x}");
+            var autoSplitterAddress = scanner.FindString("DREGUASL", Encoding.ASCII, 8).FirstOrDefault();
+            Console.WriteLine($"AutoSplitter address: 0x{autoSplitterAddress.ToInt64():x}");
 
-            while (scanner.ReadStructure<AutoSplitter>(address, out var autoSplitter))
+            Console.WriteLine("Searching for Player struct...");
+
+            var playerAddress = scanner.FindUInt32(0xfeedc0de, 4)
+                .Select(x => x - 0x2D8)
+                .FirstOrDefault(x => x.ToInt64() > autoSplitterAddress.ToInt64());
+            Console.WriteLine($"Player address: 0x{playerAddress.ToInt64():x}");
+
+            var writer = new StringWriter();
+            var sb = writer.GetStringBuilder();
+
+            while (scanner.ReadStructure<AutoSplitter>(autoSplitterAddress, out var autoSplitter) && scanner.ReadStructure<Player>(playerAddress, out var player))
             {
                 Console.Clear();
+                sb.Remove(0, sb.Length);
 
-                foreach (var fieldInfo in typeof(AutoSplitter).GetFields(BindingFlags.Public | BindingFlags.Instance))
-                {
-                    Console.WriteLine($"{fieldInfo.Name}: {fieldInfo.GetValue(autoSplitter)}");
-                }
+                PrintStruct(writer, autoSplitter);
+                PrintStruct(writer, player);
 
-                await Task.Delay(1000);
+                Console.WriteLine(writer);
+
+                await Task.Delay(500);
+            }
+
+            return 0;
+        }
+
+        private static void PrintStruct<T>(TextWriter writer, in T value)
+            where T : struct
+        {
+            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                if (fieldInfo.GetCustomAttribute<PrintAttribute>() == null) continue;
+
+                writer.WriteLine($"{fieldInfo.Name}: {fieldInfo.GetValue(value)}");
             }
         }
 
-        static async Task<Process> FindProcess(string name)
+        private static async Task<Process> FindProcess(string name)
         {
             while (true)
             {

@@ -35,6 +35,14 @@ namespace Spelunky2EventLogger
             out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool ReadProcessMemory(
+            IntPtr hProcess,
+            IntPtr lpBaseAddress,
+            IntPtr lpBuffer,
+            Int32 nSize,
+            out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
         private static extern void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);
 
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -204,30 +212,27 @@ namespace Spelunky2EventLogger
             }
         }
 
-        [ThreadStatic]
-        private static byte[] ReadStructureBuffer;
-
         public bool ReadStructure<T>(IntPtr address, out T buffer)
             where T : struct
         {
             var size = Marshal.SizeOf<T>();
-
-            if (ReadStructureBuffer == null || ReadStructureBuffer.Length < size)
-            {
-                ReadStructureBuffer = new byte[NextPowerOf2(size)];
-            }
-
-            if (!ReadProcessMemory(_processHandle, address, ReadStructureBuffer, size, out var numBytesRead) || numBytesRead.ToInt64() < size)
-            {
-                buffer = default;
-                return false;
-            }
-
             var structPtr = Marshal.AllocHGlobal(size);
-            Marshal.Copy(ReadStructureBuffer, 0, structPtr, size);
-            buffer = Marshal.PtrToStructure<T>(structPtr);
-            Marshal.FreeHGlobal(structPtr);
-            return true;
+
+            try
+            {
+                if (!ReadProcessMemory(_processHandle, address, structPtr, size, out var numBytesRead) || numBytesRead.ToInt64() < size)
+                {
+                    buffer = default;
+                    return false;
+                }
+
+                buffer = Marshal.PtrToStructure<T>(structPtr);
+                return true;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(structPtr);
+            }
         }
 
         public void Dispose()

@@ -10,6 +10,9 @@ namespace Spelunky2EventLogger
 {
     public class Program
     {
+        /// <remarks>
+        /// From https://github.com/Dregu/LiveSplit-Spelunky2#game-data
+        /// </remarks>
         [StructLayout(LayoutKind.Sequential, Pack=0)]
         private struct AutoSplitter
         {

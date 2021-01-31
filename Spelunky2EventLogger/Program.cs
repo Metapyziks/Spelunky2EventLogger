@@ -1,141 +1,171 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace Spelunky2EventLogger
 {
-    public class Program
+    public partial class Program
     {
-        [AttributeUsage(AttributeTargets.Field)]
-        private class PrintAttribute : Attribute { }
-
-        /// <remarks>
-        /// From https://github.com/Dregu/LiveSplit-Spelunky2#game-data
-        /// </remarks>
-        [StructLayout(LayoutKind.Sequential, Pack=0)]
-        private struct AutoSplitter
+        public class AppConfiguration
         {
-            public ulong magic;
-            public ulong uniq;
-            public uint counter;
-            public byte screen;
-            [Print]
-            public byte loading;
-            public byte trans;
-            [Print, MarshalAs(UnmanagedType.U1)]
-            public bool ingame;
-            [Print, MarshalAs(UnmanagedType.U1)]
-            public bool playing;
-            [MarshalAs(UnmanagedType.U1)]
-            public bool playing2;
-            [Print]
-            public byte pause;
-            [MarshalAs(UnmanagedType.U1)]
-            public bool pause2;
-            [Print]
-            public uint igt;
-            [Print]
-            public byte world;
-            [Print]
-            public byte level;
-            [Print]
-            public byte door;
-            public uint characters;
-            public uint unlockedCharacterCount;
-            public byte shortcuts;
-            public uint tries;
-            public uint deaths;
-            public uint normalWins;
-            public uint hardWins;
-            public uint specialWins;
-            public ulong averageScore;
-            public uint topScore;
-            public ulong averageTime;
-            public uint bestTime;
-            public byte bestWorld;
-            public byte bestLevel;
-            [Print]
-            public ulong currentScore;
-            [Print, MarshalAs(UnmanagedType.U1)]
-            public bool udjatEyeAvailable;
-            [MarshalAs(UnmanagedType.U1)]
-            public bool seededRun;
+            public int PollPeriodMilliseconds { get; set; }
+            public int KeyframePeriodMilliseconds { get; set; }
+            public string OutputDirectory { get; set; }
+            public string OutputFileName { get; set; }
         }
 
-        [StructLayout(LayoutKind.Sequential, Pack = 0)]
-        private unsafe struct Player
-        {
-            [MarshalAs(UnmanagedType.U1)]
-            public bool used;
-            [Print]
-            public byte life;
-            [Print]
-            public byte numBombs;
-            [Print]
-            public byte numRopes;
-            [Print, MarshalAs(UnmanagedType.U1)]
-            public bool hasAnkh;
-            [Print, MarshalAs(UnmanagedType.U1)]
-            public bool hasKapala;
-            [Print, MarshalAs(UnmanagedType.U1)]
-            public bool isPoisoned;
-            [Print, MarshalAs(UnmanagedType.U1)]
-            public bool isCursed;
-            public fixed byte reserved[128];
-        }
+        public static AppConfiguration Configuration { get; set; }
 
         private static async Task<int> Main(string[] args)
         {
+            var configBuilder = new ConfigurationBuilder();
+
+            configBuilder
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    [$"{nameof(AppConfiguration.PollPeriodMilliseconds)}"] = "10",
+                    [$"{nameof(AppConfiguration.KeyframePeriodMilliseconds)}"] = "5000",
+                    [$"{nameof(AppConfiguration.OutputDirectory)}"] = "{userprofile}\\Videos\\Spelunky 2",
+                    [$"{nameof(AppConfiguration.OutputFileName)}"] = "Spelunky 2 {utcNow:yyyy.MM.dd} - {utcNow:HH.mm.ss.ff}.DVR.log",
+                })
+                .AddJsonFile("Config.json", true);
+
+            Configuration = configBuilder.Build().Get<AppConfiguration>();
+
             Console.WriteLine("Searching for Spelunky 2...");
             var process = await FindProcess("Spel2");
 
             using var scanner = new MemoryScanner(process);
 
+            IntPtr autoSplitterAddress, playerAddress;
+
             Console.WriteLine("Searching for AutoSplitter struct...");
 
-            var autoSplitterAddress = scanner.FindString("DREGUASL", Encoding.ASCII, 8).FirstOrDefault();
-            Console.WriteLine($"AutoSplitter address: 0x{autoSplitterAddress.ToInt64():x}");
+            while (true)
+            {
+                autoSplitterAddress = scanner.FindString("DREGUASL", Encoding.ASCII, 8);
+                if (autoSplitterAddress != IntPtr.Zero) break;
+                await Task.Delay(100);
+            }
 
+            Console.WriteLine($"AutoSplitter address: 0x{autoSplitterAddress.ToInt64():x}");
             Console.WriteLine("Searching for Player struct...");
 
-            var playerAddress = scanner.FindUInt32(0xfeedc0de, 4)
-                .Select(x => x - 0x2D8)
-                .FirstOrDefault(x => x.ToInt64() > autoSplitterAddress.ToInt64());
+            while (true)
+            {
+                playerAddress = scanner.FindUInt32(0xfeedc0de, 4, autoSplitterAddress);
+                if (playerAddress != IntPtr.Zero) break;
+                await Task.Delay(100);
+            }
+
+            playerAddress -= 0x2D8;
+
             Console.WriteLine($"Player address: 0x{playerAddress.ToInt64():x}");
 
-            var writer = new StringWriter();
-            var sb = writer.GetStringBuilder();
+            var outputPath = Path.Combine(Configuration.OutputDirectory, Configuration.OutputFileName);
+
+            outputPath = FormatPath(outputPath, new Dictionary<string, object>
+            {
+                ["userprofile"] = Environment.GetEnvironmentVariable("userprofile"),
+                ["now"] = DateTime.Now,
+                ["utcNow"] = DateTime.UtcNow
+            });
+
+            Console.WriteLine($"Creating log: \"{outputPath}\"");
+
+            var outputDir = Path.GetDirectoryName(outputPath);
+
+            if (!Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+            }
+
+            using var writer = File.CreateText(outputPath);
+
+            var timer = new Stopwatch();
+            timer.Start();
+
+            var keyframeTimer = new Stopwatch();
+            keyframeTimer.Start();
+
+            var firstKeyframe = true;
+
+            AutoSplitter autoSplitterPrev = default;
+            Player playerPrev = default;
+
+            var autoSplitterChangedFields = new List<FieldInfo>();
+            var playerChangedFields = new List<FieldInfo>();
 
             while (scanner.ReadStructure<AutoSplitter>(autoSplitterAddress, out var autoSplitter) && scanner.ReadStructure<Player>(playerAddress, out var player))
             {
-                Console.Clear();
-                sb.Remove(0, sb.Length);
+                var now = DateTime.UtcNow;
 
-                PrintStruct(writer, autoSplitter);
-                PrintStruct(writer, player);
+                if (firstKeyframe || keyframeTimer.ElapsedMilliseconds >= Configuration.KeyframePeriodMilliseconds)
+                {
+                    keyframeTimer.Restart();
+                    firstKeyframe = false;
 
-                Console.WriteLine(writer);
+                    writer.WriteLine($"keyframe \"{now:O}\":");
+                    PrintFields(writer, autoSplitter);
+                    PrintFields(writer, player);
 
-                await Task.Delay(500);
+                    await writer.FlushAsync();
+                }
+                else
+                {
+                    autoSplitterChangedFields.Clear();
+                    playerChangedFields.Clear();
+
+                    var autoSplitterChanged = GetChangedFields(autoSplitterChangedFields, autoSplitterPrev, autoSplitter);
+                    var playerChanged = GetChangedFields(playerChangedFields, playerPrev, player);
+
+                    if (autoSplitterChanged || playerChanged)
+                    {
+                        writer.WriteLine($"delta: \"{now:O}\":");
+                        PrintChangedFields(writer, autoSplitterChangedFields, autoSplitter);
+                        PrintChangedFields(writer, playerChangedFields, player);
+                    }
+                }
+
+                autoSplitterPrev = autoSplitter;
+                playerPrev = player;
+
+                await Task.Delay(Math.Max(Configuration.PollPeriodMilliseconds - (int) timer.ElapsedMilliseconds, 0));
+                timer.Restart();
             }
 
             return 0;
         }
 
-        private static void PrintStruct<T>(TextWriter writer, in T value)
-            where T : struct
-        {
-            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                if (fieldInfo.GetCustomAttribute<PrintAttribute>() == null) continue;
+        private static readonly Regex FormatRegex = new Regex(@"\{\s*(?<name>[A-Za-z0-9_]+)\s*(?::(?<format>[^}]+))?\}");
 
-                writer.WriteLine($"{fieldInfo.Name}: {fieldInfo.GetValue(value)}");
-            }
+        private static string FormatPath(string path, IReadOnlyDictionary<string, object> values)
+        {
+            return FormatRegex.Replace(path, match =>
+            {
+                var name = match.Groups["name"].Value;
+
+                if (!values.TryGetValue(name, out var value))
+                {
+                    return "";
+                }
+
+                if (value is IFormattable formattable && match.Groups["format"].Success)
+                {
+                    var format = match.Groups["format"].Value;
+                    return formattable.ToString(format, null);
+                }
+
+                return value.ToString();
+            });
         }
 
         private static async Task<Process> FindProcess(string name)

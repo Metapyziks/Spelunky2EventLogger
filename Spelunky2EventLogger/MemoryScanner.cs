@@ -152,25 +152,24 @@ namespace Spelunky2EventLogger
             return -1;
         }
 
-        public IEnumerable<IntPtr> FindString(string str, Encoding encoding = null, int alignment = 1)
+        public IntPtr FindString(string str, Encoding encoding = null, int alignment = 1, IntPtr after = default)
         {
-            return FindBytes((encoding ?? Encoding.ASCII).GetBytes(str), alignment);
+            return FindBytes((encoding ?? Encoding.ASCII).GetBytes(str), alignment, after);
         }
 
-        public IEnumerable<IntPtr> FindUInt32(uint value, int alignment = 1)
+        public IntPtr FindUInt32(uint value, int alignment = 1, IntPtr after = default)
         {
-            return FindBytes(BitConverter.GetBytes(value), alignment);
+            return FindBytes(BitConverter.GetBytes(value), alignment, after);
         }
 
-        public IEnumerable<IntPtr> FindUInt64(ulong value, int alignment = 1)
+        public IntPtr FindUInt64(ulong value, int alignment = 1, IntPtr after = default)
         {
-            return FindBytes(BitConverter.GetBytes(value), alignment);
+            return FindBytes(BitConverter.GetBytes(value), alignment, after);
         }
 
-        public IEnumerable<IntPtr> FindBytes(byte[] bytes, int alignment = 1)
+        public IntPtr FindBytes(byte[] bytes, int alignment = 1, IntPtr after = default)
         {
-
-            var minAddress = _systemInfo.minimumApplicationAddress.ToInt64();
+            var minAddress = Math.Max(_systemInfo.minimumApplicationAddress.ToInt64(), after.ToInt64());
             var maxAddress = _systemInfo.maximumApplicationAddress.ToInt64();
 
             byte[] buffer = null;
@@ -184,13 +183,14 @@ namespace Spelunky2EventLogger
 
                 if (memBasicInfo.Protect == PAGE_READWRITE && memBasicInfo.State == MEM_COMMIT)
                 {
-                    if (buffer == null || buffer.Length < (int) memBasicInfo.RegionSize)
+                    var length = (int) (memBasicInfo.BaseAddress.ToInt64() + memBasicInfo.RegionSize.ToInt64() - minAddress);
+
+                    if (buffer == null || buffer.Length < length)
                     {
-                        buffer = new byte[NextPowerOf2((int) memBasicInfo.RegionSize)];
+                        buffer = new byte[NextPowerOf2(length)];
                     }
 
-                    if (!ReadProcessMemory(_processHandle, (IntPtr) minAddress, buffer, (int) memBasicInfo.RegionSize,
-                        out var numBytesRead))
+                    if (!ReadProcessMemory(_processHandle, (IntPtr) minAddress, buffer, length, out var numBytesRead))
                     {
                         throw new Exception($"ReadProcessMemory error: 0x{GetLastError():x8}.");
                     }
@@ -199,7 +199,7 @@ namespace Spelunky2EventLogger
 
                     if (offset != -1)
                     {
-                        yield return memBasicInfo.BaseAddress + offset;
+                        return (IntPtr) minAddress + offset;
                     }
                 }
 
@@ -210,6 +210,8 @@ namespace Spelunky2EventLogger
 
                 minAddress = memBasicInfo.BaseAddress.ToInt64() + memBasicInfo.RegionSize.ToInt64();
             }
+
+            return IntPtr.Zero;
         }
 
         public bool ReadStructure<T>(IntPtr address, out T buffer)

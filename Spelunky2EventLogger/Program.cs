@@ -104,14 +104,18 @@ namespace Spelunky2EventLogger
             var autoSplitterChangedFields = new List<FieldInfo>();
             var playerChangedFields = new List<FieldInfo>();
 
+            var changesSinceKeyframe = true;
+
             while (scanner.ReadStructure<AutoSplitter>(autoSplitterAddress, out var autoSplitter) && scanner.ReadStructure<Player>(playerAddress, out var player))
             {
                 var now = DateTime.UtcNow;
 
-                if (firstKeyframe || keyframeTimer.ElapsedMilliseconds >= Configuration.KeyframePeriodMilliseconds)
+                if (changesSinceKeyframe && (firstKeyframe || keyframeTimer.ElapsedMilliseconds >= Configuration.KeyframePeriodMilliseconds))
                 {
                     keyframeTimer.Restart();
                     firstKeyframe = false;
+
+                    changesSinceKeyframe = false;
 
                     writer.WriteLine($"keyframe \"{now:O}\":");
                     PrintFields(writer, autoSplitter);
@@ -129,6 +133,8 @@ namespace Spelunky2EventLogger
 
                     if (autoSplitterChanged || playerChanged)
                     {
+                        changesSinceKeyframe = true;
+
                         writer.WriteLine($"delta: \"{now:O}\":");
                         PrintChangedFields(writer, autoSplitterChangedFields, autoSplitter);
                         PrintChangedFields(writer, playerChangedFields, player);

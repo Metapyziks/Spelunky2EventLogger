@@ -86,14 +86,14 @@ namespace Spelunky2EventLogger
 
     public partial class Program
     {
-        public static void PrintFields<T>(TextWriter writer, in T value)
+        public static void PrintFields<T>(TextWriter writer, in T value, string prefix = "")
             where T : struct, IGameStruct
         {
             foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 if (fieldInfo.GetCustomAttribute<PrintAttribute>() == null) continue;
 
-                writer.WriteLine($"  {fieldInfo.Name}: {fieldInfo.GetValue(value)}");
+                writer.WriteLine($"  {prefix}{fieldInfo.Name}: {fieldInfo.GetValue(value)}");
             }
         }
 
@@ -118,12 +118,12 @@ namespace Spelunky2EventLogger
             return anyChanges;
         }
 
-        public static void PrintChangedFields<T>(TextWriter writer, List<FieldInfo> changedFields, in T value)
+        public static void PrintChangedFields<T>(TextWriter writer, List<FieldInfo> changedFields, in T value, string prefix = "")
             where T : struct, IGameStruct
         {
             foreach (var fieldInfo in changedFields)
             {
-                writer.WriteLine($"  {fieldInfo.Name}: {fieldInfo.GetValue(value)}");
+                writer.WriteLine($"  {prefix}{fieldInfo.Name}: {fieldInfo.GetValue(value)}");
             }
         }
     }

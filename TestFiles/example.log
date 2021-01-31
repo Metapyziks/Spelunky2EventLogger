@@ -1,0 +1,2866 @@
+keyframe:
+  time: 1612061518493
+  igt: 47459
+  loading: 0
+  ingame: True
+  playing: False
+  pause: 0
+  world: 2
+  level: 4
+  door: 0
+  currentScore: 85775
+  udjatEyeAvailable: False
+  player0.life: 0
+  player0.numBombs: 0
+  player0.numRopes: 0
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612061522621
+  time: 1612061522621
+  igt: 47459
+  loading: 1
+delta: 1612061522636
+  time: 1612061522636
+  igt: 47459
+  pause: 2
+delta: 1612061522915
+  time: 1612061522915
+  igt: 47459
+  loading: 2
+delta: 1612061522961
+  time: 1612061522961
+  igt: 1
+  loading: 3
+  playing: True
+  world: 1
+  level: 1
+  currentScore: 0
+  player0.life: 4
+  player0.numBombs: 4
+  player0.numRopes: 4
+delta: 1612061523592
+  time: 1612061523592
+  igt: 2
+  loading: 0
+  pause: 0
+delta: 1612061536520
+  time: 1612061536520
+  igt: 777
+  currentScore: 500
+delta: 1612061537338
+  time: 1612061537338
+  igt: 826
+  currentScore: 2000
+delta: 1612061538036
+  time: 1612061538036
+  igt: 868
+  currentScore: 2500
+delta: 1612061541654
+  time: 1612061541654
+  igt: 1085
+  currentScore: 3000
+delta: 1612061543371
+  time: 1612061543371
+  igt: 1188
+  loading: 1
+  playing: False
+delta: 1612061543386
+  time: 1612061543386
+  igt: 1188
+  pause: 2
+delta: 1612061543663
+  time: 1612061543663
+  igt: 1188
+  loading: 2
+delta: 1612061543694
+  time: 1612061543694
+  igt: 1188
+  loading: 3
+  player0.life: 5
+delta: 1612061543987
+  time: 1612061543987
+  igt: 1188
+  loading: 0
+  pause: 0
+delta: 1612061544050
+  time: 1612061544050
+  igt: 1188
+  loading: 1
+delta: 1612061544065
+  time: 1612061544065
+  igt: 1188
+  pause: 2
+delta: 1612061544357
+  time: 1612061544357
+  igt: 1188
+  loading: 2
+delta: 1612061544388
+  time: 1612061544388
+  igt: 1189
+  loading: 3
+  playing: True
+  level: 2
+delta: 1612061545038
+  time: 1612061545038
+  igt: 1190
+  loading: 0
+  pause: 0
+delta: 1612061555668
+  time: 1612061555668
+  igt: 1828
+  currentScore: 3500
+delta: 1612061561135
+  time: 1612061561135
+  igt: 2156
+  currentScore: 4000
+delta: 1612061562771
+  time: 1612061562771
+  igt: 2254
+  currentScore: 4500
+delta: 1612061572848
+  time: 1612061572848
+  igt: 2859
+  currentScore: 5000
+delta: 1612061576420
+  time: 1612061576420
+  igt: 3073
+  currentScore: 6500
+keyframe:
+  time: 1612061578507
+  igt: 3198
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 2
+  door: 0
+  currentScore: 6500
+  udjatEyeAvailable: False
+  player0.life: 5
+  player0.numBombs: 4
+  player0.numRopes: 4
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612061579914
+  time: 1612061579914
+  igt: 3283
+  currentScore: 7000
+delta: 1612061581058
+  time: 1612061581058
+  igt: 3351
+  currentScore: 12000
+delta: 1612061582915
+  time: 1612061582915
+  igt: 3463
+  currentScore: 7000
+delta: 1612061585852
+  time: 1612061585852
+  igt: 3639
+  loading: 1
+  playing: False
+delta: 1612061585867
+  time: 1612061585867
+  igt: 3639
+  pause: 2
+delta: 1612061586145
+  time: 1612061586145
+  igt: 3639
+  loading: 2
+delta: 1612061586176
+  time: 1612061586176
+  igt: 3639
+  loading: 3
+delta: 1612061586471
+  time: 1612061586471
+  igt: 3639
+  loading: 1
+  pause: 0
+delta: 1612061586486
+  time: 1612061586486
+  igt: 3639
+  pause: 2
+delta: 1612061586765
+  time: 1612061586765
+  igt: 3639
+  loading: 2
+delta: 1612061586812
+  time: 1612061586812
+  igt: 3640
+  loading: 3
+  playing: True
+  level: 3
+delta: 1612061587446
+  time: 1612061587446
+  igt: 3641
+  loading: 0
+  pause: 0
+delta: 1612061588375
+  time: 1612061588375
+  igt: 3696
+  currentScore: 7500
+delta: 1612061591681
+  time: 1612061591681
+  igt: 3895
+  currentScore: 8000
+delta: 1612061600151
+  time: 1612061600151
+  igt: 4403
+  player0.numRopes: 3
+delta: 1612061600475
+  time: 1612061600475
+  igt: 4422
+  player0.numBombs: 7
+delta: 1612061600784
+  time: 1612061600784
+  igt: 4441
+  player0.numBombs: 19
+delta: 1612061600939
+  time: 1612061600939
+  igt: 4450
+  player0.numRopes: 6
+delta: 1612061616951
+  time: 1612061616951
+  igt: 5411
+  player0.numBombs: 18
+delta: 1612061620907
+  time: 1612061620907
+  igt: 5648
+  player0.numBombs: 17
+delta: 1612061626390
+  time: 1612061626390
+  igt: 5977
+  currentScore: 9500
+delta: 1612061626730
+  time: 1612061626730
+  igt: 5998
+  currentScore: 10000
+delta: 1612061629298
+  time: 1612061629298
+  igt: 6152
+  currentScore: 10500
+delta: 1612061629932
+  time: 1612061629932
+  igt: 6190
+  player0.numRopes: 5
+delta: 1612061631786
+  time: 1612061631786
+  igt: 6301
+  currentScore: 11300
+keyframe:
+  time: 1612061638519
+  igt: 6705
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 3
+  door: 0
+  currentScore: 11300
+  udjatEyeAvailable: False
+  player0.life: 5
+  player0.numBombs: 17
+  player0.numRopes: 5
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612061646559
+  time: 1612061646559
+  igt: 7187
+  currentScore: 11800
+delta: 1612061657967
+  time: 1612061657967
+  igt: 7872
+  currentScore: 11900
+delta: 1612061665444
+  time: 1612061665444
+  igt: 8321
+  currentScore: 12400
+delta: 1612061670265
+  time: 1612061670265
+  igt: 8610
+  currentScore: 12900
+delta: 1612061670326
+  time: 1612061670326
+  igt: 8613
+  currentScore: 13400
+delta: 1612061670342
+  time: 1612061670342
+  igt: 8615
+  currentScore: 13900
+delta: 1612061675531
+  time: 1612061675531
+  igt: 8926
+  loading: 1
+  playing: False
+delta: 1612061675547
+  time: 1612061675547
+  igt: 8926
+  pause: 2
+delta: 1612061675839
+  time: 1612061675839
+  igt: 8926
+  loading: 2
+delta: 1612061675854
+  time: 1612061675854
+  igt: 8926
+  loading: 3
+  pause: 0
+delta: 1612061675869
+  time: 1612061675869
+  igt: 8926
+  pause: 2
+delta: 1612061676148
+  time: 1612061676148
+  igt: 8926
+  loading: 1
+  pause: 0
+delta: 1612061676164
+  time: 1612061676164
+  igt: 8926
+  pause: 2
+delta: 1612061676458
+  time: 1612061676458
+  igt: 8926
+  loading: 2
+delta: 1612061676505
+  time: 1612061676505
+  igt: 8927
+  loading: 3
+  playing: True
+  level: 4
+delta: 1612061677138
+  time: 1612061677138
+  igt: 8928
+  loading: 0
+  pause: 0
+delta: 1612061677261
+  time: 1612061677261
+  igt: 8936
+  currentScore: 14400
+delta: 1612061680817
+  time: 1612061680817
+  igt: 9149
+  currentScore: 14900
+delta: 1612061682410
+  time: 1612061682410
+  igt: 9245
+  currentScore: 16400
+delta: 1612061695425
+  time: 1612061695425
+  igt: 10026
+  currentScore: 16900
+keyframe:
+  time: 1612061698533
+  igt: 10212
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 4
+  door: 0
+  currentScore: 16900
+  udjatEyeAvailable: False
+  player0.life: 5
+  player0.numBombs: 17
+  player0.numRopes: 5
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612061732918
+  time: 1612061732918
+  igt: 12275
+  player0.life: 6
+delta: 1612061732949
+  time: 1612061732949
+  igt: 12277
+  player0.numBombs: 20
+delta: 1612061736784
+  time: 1612061736784
+  igt: 12507
+  currentScore: 17400
+delta: 1612061736877
+  time: 1612061736877
+  igt: 12512
+  currentScore: 18400
+delta: 1612061738455
+  time: 1612061738455
+  igt: 12607
+  currentScore: 19400
+delta: 1612061745256
+  time: 1612061745256
+  igt: 13015
+  currentScore: 20200
+delta: 1612061746692
+  time: 1612061746692
+  igt: 13101
+  currentScore: 21700
+delta: 1612061750028
+  time: 1612061750028
+  igt: 13301
+  loading: 1
+  playing: False
+  pause: 2
+delta: 1612061750321
+  time: 1612061750321
+  igt: 13301
+  loading: 2
+delta: 1612061750337
+  time: 1612061750337
+  igt: 13301
+  loading: 3
+  pause: 0
+delta: 1612061750353
+  time: 1612061750353
+  igt: 13301
+  pause: 2
+delta: 1612061750632
+  time: 1612061750632
+  igt: 13301
+  loading: 1
+  pause: 0
+delta: 1612061750647
+  time: 1612061750647
+  igt: 13301
+  pause: 2
+delta: 1612061750925
+  time: 1612061750925
+  igt: 13301
+  loading: 2
+delta: 1612061751048
+  time: 1612061751048
+  igt: 13302
+  loading: 3
+  playing: True
+  world: 2
+  level: 1
+delta: 1612061751637
+  time: 1612061751637
+  igt: 13303
+  loading: 0
+  pause: 0
+delta: 1612061753726
+  time: 1612061753726
+  igt: 13429
+  currentScore: 22325
+delta: 1612061754528
+  time: 1612061754528
+  igt: 13477
+  currentScore: 24200
+delta: 1612061755193
+  time: 1612061755193
+  igt: 13517
+  currentScore: 24825
+delta: 1612061755471
+  time: 1612061755471
+  igt: 13533
+  currentScore: 26700
+keyframe:
+  time: 1612061758547
+  igt: 13718
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 1
+  door: 0
+  currentScore: 26700
+  udjatEyeAvailable: False
+  player0.life: 6
+  player0.numBombs: 20
+  player0.numRopes: 5
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612061763125
+  time: 1612061763125
+  igt: 13993
+  currentScore: 28575
+delta: 1612061766109
+  time: 1612061766109
+  igt: 14171
+  currentScore: 30450
+delta: 1612061770052
+  time: 1612061770052
+  igt: 14408
+  currentScore: 31075
+delta: 1612061782456
+  time: 1612061782456
+  igt: 15152
+  currentScore: 31700
+delta: 1612061784155
+  time: 1612061784155
+  igt: 15254
+  currentScore: 33575
+delta: 1612061784667
+  time: 1612061784667
+  igt: 15285
+  currentScore: 39825
+delta: 1612061801447
+  time: 1612061801447
+  igt: 16292
+  currentScore: 41700
+delta: 1612061808132
+  time: 1612061808132
+  igt: 16693
+  player0.numBombs: 19
+delta: 1612061812509
+  time: 1612061812509
+  igt: 16956
+  currentScore: 42325
+delta: 1612061813066
+  time: 1612061813066
+  igt: 16989
+  currentScore: 42450
+delta: 1612061815591
+  time: 1612061815591
+  igt: 17141
+  currentScore: 42575
+delta: 1612061817829
+  time: 1612061817829
+  igt: 17275
+  player0.numBombs: 18
+keyframe:
+  time: 1612061818557
+  igt: 17318
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 1
+  door: 0
+  currentScore: 42575
+  udjatEyeAvailable: False
+  player0.life: 6
+  player0.numBombs: 18
+  player0.numRopes: 5
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612061822504
+  time: 1612061822504
+  igt: 17555
+  player0.numRopes: 4
+delta: 1612061825798
+  time: 1612061825798
+  igt: 17753
+  player0.numRopes: 3
+delta: 1612061831518
+  time: 1612061831518
+  igt: 18096
+  currentScore: 42700
+delta: 1612061833451
+  time: 1612061833451
+  igt: 18212
+  currentScore: 43325
+delta: 1612061844760
+  time: 1612061844760
+  igt: 18891
+  currentScore: 43950
+delta: 1612061846398
+  time: 1612061846398
+  igt: 18989
+  loading: 1
+  playing: False
+delta: 1612061846414
+  time: 1612061846414
+  igt: 18989
+  pause: 2
+delta: 1612061846707
+  time: 1612061846707
+  igt: 18989
+  loading: 2
+delta: 1612061846722
+  time: 1612061846722
+  igt: 18989
+  loading: 3
+  pause: 0
+delta: 1612061846737
+  time: 1612061846737
+  igt: 18989
+  pause: 2
+delta: 1612061847016
+  time: 1612061847016
+  igt: 18989
+  loading: 0
+  pause: 0
+delta: 1612061847200
+  time: 1612061847200
+  igt: 18989
+  loading: 1
+delta: 1612061847216
+  time: 1612061847216
+  igt: 18989
+  pause: 2
+delta: 1612061847493
+  time: 1612061847493
+  igt: 18989
+  loading: 2
+delta: 1612061847602
+  time: 1612061847602
+  igt: 18990
+  loading: 3
+  playing: True
+  level: 2
+delta: 1612061848190
+  time: 1612061848190
+  igt: 18991
+  loading: 0
+  pause: 0
+delta: 1612061855612
+  time: 1612061855612
+  igt: 19436
+  currentScore: 44575
+delta: 1612061866155
+  time: 1612061866155
+  igt: 20069
+  currentScore: 34575
+delta: 1612061872352
+  time: 1612061872352
+  igt: 20441
+  currentScore: 36450
+delta: 1612061873650
+  time: 1612061873650
+  igt: 20518
+  currentScore: 37075
+keyframe:
+  time: 1612061878566
+  igt: 20813
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 2
+  door: 0
+  currentScore: 37075
+  udjatEyeAvailable: False
+  player0.life: 6
+  player0.numBombs: 18
+  player0.numRopes: 3
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612061880329
+  time: 1612061880329
+  igt: 20919
+  currentScore: 38075
+delta: 1612061880900
+  time: 1612061880900
+  igt: 20953
+  currentScore: 40075
+delta: 1612061887019
+  time: 1612061887019
+  igt: 21320
+  player0.numRopes: 6
+delta: 1612061887499
+  time: 1612061887499
+  igt: 21349
+  currentScore: 41075
+delta: 1612061893683
+  time: 1612061893683
+  igt: 21720
+  currentScore: 43075
+delta: 1612061897843
+  time: 1612061897843
+  igt: 21970
+  currentScore: 45075
+delta: 1612061897874
+  time: 1612061897874
+  igt: 21972
+  currentScore: 45200
+delta: 1612061898075
+  time: 1612061898075
+  igt: 21984
+  currentScore: 45575
+delta: 1612061898091
+  time: 1612061898091
+  igt: 21985
+  currentScore: 47075
+delta: 1612061898122
+  time: 1612061898122
+  igt: 21987
+  currentScore: 47325
+delta: 1612061905125
+  time: 1612061905125
+  igt: 22407
+  player0.numBombs: 21
+delta: 1612061907319
+  time: 1612061907319
+  igt: 22539
+  currentScore: 47450
+delta: 1612061907474
+  time: 1612061907474
+  igt: 22548
+  currentScore: 47575
+delta: 1612061925531
+  time: 1612061925531
+  igt: 23631
+  player0.numRopes: 9
+delta: 1612061928112
+  time: 1612061928112
+  igt: 23786
+  currentScore: 47700
+delta: 1612061930044
+  time: 1612061930044
+  igt: 23902
+  currentScore: 47825
+delta: 1612061932639
+  time: 1612061932639
+  igt: 24058
+  currentScore: 48075
+delta: 1612061935498
+  time: 1612061935498
+  igt: 24229
+  currentScore: 52825
+delta: 1612061935652
+  time: 1612061935652
+  igt: 24238
+  currentScore: 52950
+delta: 1612061936891
+  time: 1612061936891
+  igt: 24313
+  currentScore: 53575
+keyframe:
+  time: 1612061938575
+  igt: 24414
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 2
+  door: 0
+  currentScore: 53575
+  udjatEyeAvailable: False
+  player0.life: 6
+  player0.numBombs: 21
+  player0.numRopes: 9
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612061942068
+  time: 1612061942068
+  igt: 24623
+  currentScore: 53700
+delta: 1612061942237
+  time: 1612061942237
+  igt: 24633
+  currentScore: 54700
+delta: 1612061944294
+  time: 1612061944294
+  igt: 24757
+  currentScore: 54825
+delta: 1612061944402
+  time: 1612061944402
+  igt: 24764
+  currentScore: 54950
+delta: 1612061945546
+  time: 1612061945546
+  igt: 24832
+  currentScore: 55075
+delta: 1612061945592
+  time: 1612061945592
+  igt: 24835
+  currentScore: 55200
+delta: 1612061946350
+  time: 1612061946350
+  igt: 24880
+  currentScore: 55325
+delta: 1612061946443
+  time: 1612061946443
+  igt: 24886
+  currentScore: 55450
+delta: 1612061964546
+  time: 1612061964546
+  igt: 25972
+  currentScore: 57325
+delta: 1612061970063
+  time: 1612061970063
+  igt: 26303
+  player0.numRopes: 8
+delta: 1612061995553
+  time: 1612061995553
+  igt: 27833
+  player0.numBombs: 20
+keyframe:
+  time: 1612061998583
+  igt: 28014
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 2
+  door: 0
+  currentScore: 57325
+  udjatEyeAvailable: False
+  player0.life: 6
+  player0.numBombs: 20
+  player0.numRopes: 8
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062032592
+  time: 1612062032592
+  igt: 30055
+  loading: 1
+  playing: False
+delta: 1612062032608
+  time: 1612062032608
+  igt: 30055
+  pause: 2
+delta: 1612062032901
+  time: 1612062032901
+  igt: 30055
+  loading: 2
+delta: 1612062032916
+  time: 1612062032916
+  igt: 30055
+  loading: 3
+  pause: 0
+delta: 1612062032932
+  time: 1612062032932
+  igt: 30055
+  pause: 2
+delta: 1612062033209
+  time: 1612062033209
+  igt: 30055
+  loading: 1
+  pause: 0
+delta: 1612062033224
+  time: 1612062033224
+  igt: 30055
+  pause: 2
+delta: 1612062033518
+  time: 1612062033518
+  igt: 30055
+  loading: 2
+delta: 1612062033611
+  time: 1612062033611
+  igt: 30056
+  loading: 3
+  playing: True
+  level: 3
+delta: 1612062034198
+  time: 1612062034198
+  igt: 30057
+  loading: 0
+  pause: 0
+keyframe:
+  time: 1612062058597
+  igt: 31521
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 3
+  door: 0
+  currentScore: 57325
+  udjatEyeAvailable: False
+  player0.life: 6
+  player0.numBombs: 20
+  player0.numRopes: 8
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062062260
+  time: 1612062062260
+  igt: 31740
+  player0.life: 4
+delta: 1612062062941
+  time: 1612062062941
+  igt: 31782
+  player0.life: 0
+  player0.numBombs: 0
+  player0.numRopes: 0
+delta: 1612062063512
+  time: 1612062063512
+  igt: 31816
+  pause: 1
+delta: 1612062064778
+  time: 1612062064778
+  igt: 31891
+  loading: 1
+  playing: False
+  pause: 3
+delta: 1612062065071
+  time: 1612062065071
+  igt: 31891
+  loading: 2
+delta: 1612062065101
+  time: 1612062065101
+  igt: 1
+  loading: 3
+  playing: True
+  pause: 2
+  world: 1
+  level: 1
+  currentScore: 0
+  player0.life: 4
+  player0.numBombs: 4
+  player0.numRopes: 4
+delta: 1612062065750
+  time: 1612062065750
+  igt: 2
+  loading: 0
+  pause: 0
+delta: 1612062067931
+  time: 1612062067931
+  igt: 133
+  currentScore: 800
+delta: 1612062076851
+  time: 1612062076851
+  igt: 668
+  currentScore: 1300
+delta: 1612062080267
+  time: 1612062080267
+  igt: 873
+  loading: 1
+  playing: False
+delta: 1612062080282
+  time: 1612062080282
+  igt: 873
+  pause: 2
+delta: 1612062080559
+  time: 1612062080559
+  igt: 873
+  loading: 2
+delta: 1612062080590
+  time: 1612062080590
+  igt: 873
+  loading: 3
+  pause: 0
+delta: 1612062080606
+  time: 1612062080606
+  igt: 873
+  pause: 2
+delta: 1612062080883
+  time: 1612062080883
+  igt: 873
+  loading: 1
+  pause: 0
+delta: 1612062080899
+  time: 1612062080899
+  igt: 873
+  pause: 2
+delta: 1612062081176
+  time: 1612062081176
+  igt: 873
+  loading: 2
+delta: 1612062081223
+  time: 1612062081223
+  igt: 874
+  loading: 3
+  playing: True
+  level: 2
+delta: 1612062081872
+  time: 1612062081872
+  igt: 875
+  loading: 0
+  pause: 0
+delta: 1612062084129
+  time: 1612062084129
+  igt: 1011
+  player0.numRopes: 3
+delta: 1612062084747
+  time: 1612062084747
+  igt: 1048
+  player0.numBombs: 16
+delta: 1612062088470
+  time: 1612062088470
+  igt: 1271
+  player0.numBombs: 15
+delta: 1612062100705
+  time: 1612062100705
+  igt: 2005
+  player0.life: 3
+delta: 1612062108377
+  time: 1612062108377
+  igt: 2466
+  currentScore: 2800
+delta: 1612062109583
+  time: 1612062109583
+  igt: 2538
+  loading: 1
+  playing: False
+delta: 1612062109599
+  time: 1612062109599
+  igt: 2538
+  pause: 2
+delta: 1612062109892
+  time: 1612062109892
+  igt: 2538
+  loading: 2
+delta: 1612062109907
+  time: 1612062109907
+  igt: 2538
+  loading: 3
+delta: 1612062110202
+  time: 1612062110202
+  igt: 2538
+  loading: 1
+  pause: 0
+delta: 1612062110217
+  time: 1612062110217
+  igt: 2538
+  pause: 2
+delta: 1612062110496
+  time: 1612062110496
+  igt: 2538
+  loading: 2
+delta: 1612062110543
+  time: 1612062110543
+  igt: 2539
+  loading: 3
+  playing: True
+  level: 3
+delta: 1612062111176
+  time: 1612062111176
+  igt: 2540
+  loading: 0
+  pause: 0
+delta: 1612062117956
+  time: 1612062117956
+  igt: 2946
+  currentScore: 4300
+keyframe:
+  time: 1612062118603
+  igt: 2985
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 3
+  door: 0
+  currentScore: 4300
+  udjatEyeAvailable: False
+  player0.life: 3
+  player0.numBombs: 15
+  player0.numRopes: 3
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062145306
+  time: 1612062145306
+  igt: 4587
+  player0.life: 2
+delta: 1612062159064
+  time: 1612062159064
+  igt: 5413
+  loading: 1
+  playing: False
+delta: 1612062159080
+  time: 1612062159080
+  igt: 5413
+  pause: 2
+delta: 1612062159358
+  time: 1612062159358
+  igt: 5413
+  loading: 2
+delta: 1612062159389
+  time: 1612062159389
+  igt: 5413
+  loading: 3
+  pause: 0
+delta: 1612062159404
+  time: 1612062159404
+  igt: 5413
+  pause: 2
+delta: 1612062159684
+  time: 1612062159684
+  igt: 5413
+  loading: 1
+  pause: 0
+delta: 1612062159699
+  time: 1612062159699
+  igt: 5413
+  pause: 2
+delta: 1612062159977
+  time: 1612062159977
+  igt: 5413
+  loading: 2
+delta: 1612062160024
+  time: 1612062160024
+  igt: 5414
+  loading: 3
+  playing: True
+  level: 4
+delta: 1612062160658
+  time: 1612062160658
+  igt: 5415
+  loading: 0
+  pause: 0
+delta: 1612062165839
+  time: 1612062165839
+  igt: 5725
+  currentScore: 4800
+delta: 1612062168854
+  time: 1612062168854
+  igt: 5906
+  currentScore: 5300
+keyframe:
+  time: 1612062178607
+  igt: 6491
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 4
+  door: 0
+  currentScore: 5300
+  udjatEyeAvailable: False
+  player0.life: 2
+  player0.numBombs: 15
+  player0.numRopes: 3
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062182888
+  time: 1612062182888
+  igt: 6748
+  currentScore: 5800
+delta: 1612062182934
+  time: 1612062182934
+  igt: 6751
+  currentScore: 6300
+delta: 1612062182965
+  time: 1612062182965
+  igt: 6753
+  currentScore: 6800
+delta: 1612062183089
+  time: 1612062183089
+  igt: 6760
+  player0.life: 3
+delta: 1612062183290
+  time: 1612062183290
+  igt: 6772
+  player0.numBombs: 18
+delta: 1612062194321
+  time: 1612062194321
+  igt: 7434
+  currentScore: 7800
+delta: 1612062195126
+  time: 1612062195126
+  igt: 7483
+  currentScore: 9000
+delta: 1612062208829
+  time: 1612062208829
+  igt: 8305
+  currentScore: 9500
+delta: 1612062212404
+  time: 1612062212404
+  igt: 8519
+  currentScore: 10500
+delta: 1612062216843
+  time: 1612062216843
+  igt: 8786
+  currentScore: 11000
+delta: 1612062232435
+  time: 1612062232435
+  igt: 9721
+  currentScore: 12500
+delta: 1612062233469
+  time: 1612062233469
+  igt: 9783
+  currentScore: 14000
+keyframe:
+  time: 1612062238613
+  igt: 10092
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 4
+  door: 0
+  currentScore: 14000
+  udjatEyeAvailable: False
+  player0.life: 3
+  player0.numBombs: 18
+  player0.numRopes: 3
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062248116
+  time: 1612062248116
+  igt: 10662
+  loading: 1
+  playing: False
+delta: 1612062248132
+  time: 1612062248132
+  igt: 10662
+  pause: 2
+delta: 1612062248411
+  time: 1612062248411
+  igt: 10662
+  loading: 2
+delta: 1612062248426
+  time: 1612062248426
+  igt: 10662
+  loading: 3
+  pause: 0
+  player0.life: 4
+delta: 1612062248457
+  time: 1612062248457
+  igt: 10662
+  pause: 2
+delta: 1612062248735
+  time: 1612062248735
+  igt: 10662
+  loading: 0
+  pause: 0
+delta: 1612062249092
+  time: 1612062249092
+  igt: 10662
+  loading: 1
+delta: 1612062249123
+  time: 1612062249123
+  igt: 10662
+  pause: 2
+delta: 1612062249400
+  time: 1612062249400
+  igt: 10662
+  loading: 2
+delta: 1612062249493
+  time: 1612062249493
+  igt: 10663
+  loading: 3
+  playing: True
+  world: 2
+  level: 1
+delta: 1612062250097
+  time: 1612062250097
+  igt: 10664
+  loading: 0
+  pause: 0
+delta: 1612062252631
+  time: 1612062252631
+  igt: 10816
+  currentScore: 15000
+delta: 1612062266685
+  time: 1612062266685
+  igt: 11660
+  player0.life: 2
+delta: 1612062266979
+  time: 1612062266979
+  igt: 11678
+  currentScore: 16875
+delta: 1612062269387
+  time: 1612062269387
+  igt: 11822
+  currentScore: 18750
+delta: 1612062283860
+  time: 1612062283860
+  igt: 12690
+  currentScore: 19375
+delta: 1612062285453
+  time: 1612062285453
+  igt: 12786
+  currentScore: 21250
+keyframe:
+  time: 1612062298623
+  igt: 13576
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 1
+  door: 0
+  currentScore: 21250
+  udjatEyeAvailable: False
+  player0.life: 2
+  player0.numBombs: 18
+  player0.numRopes: 3
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062312643
+  time: 1612062312643
+  igt: 14417
+  currentScore: 21875
+delta: 1612062316495
+  time: 1612062316495
+  igt: 14649
+  currentScore: 22500
+delta: 1612062319557
+  time: 1612062319557
+  igt: 14832
+  currentScore: 28750
+delta: 1612062337753
+  time: 1612062337753
+  igt: 15924
+  loading: 1
+  playing: False
+delta: 1612062337768
+  time: 1612062337768
+  igt: 15924
+  pause: 2
+delta: 1612062338048
+  time: 1612062338048
+  igt: 15924
+  loading: 2
+delta: 1612062338063
+  time: 1612062338063
+  igt: 15924
+  loading: 3
+  pause: 0
+delta: 1612062338094
+  time: 1612062338094
+  igt: 15924
+  pause: 2
+delta: 1612062338372
+  time: 1612062338372
+  igt: 15924
+  loading: 0
+  pause: 0
+delta: 1612062338512
+  time: 1612062338512
+  igt: 15924
+  loading: 1
+  pause: 2
+delta: 1612062338805
+  time: 1612062338805
+  igt: 15924
+  loading: 2
+delta: 1612062338960
+  time: 1612062338960
+  igt: 15925
+  loading: 3
+  playing: True
+  level: 2
+delta: 1612062339548
+  time: 1612062339548
+  igt: 15926
+  loading: 0
+  pause: 0
+delta: 1612062345627
+  time: 1612062345627
+  igt: 16291
+  currentScore: 29375
+delta: 1612062345674
+  time: 1612062345674
+  igt: 16293
+  currentScore: 30000
+delta: 1612062352383
+  time: 1612062352383
+  igt: 16696
+  currentScore: 30625
+delta: 1612062355724
+  time: 1612062355724
+  igt: 16896
+  pause: 1
+keyframe:
+  time: 1612062358635
+  igt: 17042
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 1
+  world: 2
+  level: 2
+  door: 0
+  currentScore: 30625
+  udjatEyeAvailable: False
+  player0.life: 2
+  player0.numBombs: 18
+  player0.numRopes: 3
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062466483
+  time: 1612062466483
+  igt: 23487
+  pause: 0
+keyframe:
+  time: 1612062466499
+  igt: 23488
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 2
+  door: 0
+  currentScore: 30625
+  udjatEyeAvailable: False
+  player0.life: 2
+  player0.numBombs: 18
+  player0.numRopes: 3
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062480436
+  time: 1612062480436
+  igt: 24324
+  player0.numRopes: 6
+delta: 1612062497725
+  time: 1612062497725
+  igt: 25361
+  player0.numBombs: 17
+delta: 1612062499194
+  time: 1612062499194
+  igt: 25449
+  player0.numBombs: 16
+delta: 1612062508507
+  time: 1612062508507
+  igt: 26008
+  currentScore: 30750
+delta: 1612062517510
+  time: 1612062517510
+  igt: 26548
+  player0.numBombs: 15
+delta: 1612062524167
+  time: 1612062524167
+  igt: 26948
+  player0.life: 0
+  player0.numBombs: 0
+  player0.numRopes: 0
+delta: 1612062524817
+  time: 1612062524817
+  igt: 26987
+  pause: 1
+delta: 1612062525806
+  time: 1612062525806
+  igt: 27045
+  loading: 1
+  playing: False
+  pause: 3
+delta: 1612062526084
+  time: 1612062526084
+  igt: 27045
+  loading: 2
+delta: 1612062526115
+  time: 1612062526115
+  igt: 1
+  loading: 3
+  playing: True
+  pause: 2
+  world: 1
+  level: 1
+  currentScore: 0
+  player0.life: 4
+  player0.numBombs: 4
+  player0.numRopes: 4
+keyframe:
+  time: 1612062526502
+  igt: 1
+  loading: 3
+  ingame: True
+  playing: True
+  pause: 2
+  world: 1
+  level: 1
+  door: 0
+  currentScore: 0
+  udjatEyeAvailable: False
+  player0.life: 4
+  player0.numBombs: 4
+  player0.numRopes: 4
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062526765
+  time: 1612062526765
+  igt: 2
+  loading: 0
+  pause: 0
+delta: 1612062536518
+  time: 1612062536518
+  igt: 587
+  currentScore: 500
+delta: 1612062536626
+  time: 1612062536626
+  igt: 594
+  currentScore: 1000
+delta: 1612062547335
+  time: 1612062547335
+  igt: 1236
+  pause: 1
+  currentScore: 1500
+delta: 1612062551462
+  time: 1612062551462
+  igt: 1484
+  pause: 0
+delta: 1612062558041
+  time: 1612062558041
+  igt: 1878
+  loading: 1
+  playing: False
+delta: 1612062558056
+  time: 1612062558056
+  igt: 1878
+  pause: 2
+delta: 1612062558350
+  time: 1612062558350
+  igt: 1878
+  loading: 3
+  pause: 0
+delta: 1612062558365
+  time: 1612062558365
+  igt: 1878
+  pause: 2
+delta: 1612062558643
+  time: 1612062558643
+  igt: 1878
+  loading: 0
+  pause: 0
+delta: 1612062558690
+  time: 1612062558690
+  igt: 1878
+  loading: 1
+delta: 1612062558705
+  time: 1612062558705
+  igt: 1878
+  pause: 2
+delta: 1612062558984
+  time: 1612062558984
+  igt: 1878
+  loading: 2
+delta: 1612062559030
+  time: 1612062559030
+  igt: 1879
+  loading: 3
+  playing: True
+  level: 2
+delta: 1612062559664
+  time: 1612062559664
+  igt: 1880
+  loading: 0
+  pause: 0
+delta: 1612062573399
+  time: 1612062573399
+  igt: 2704
+  player0.numRopes: 3
+delta: 1612062585482
+  time: 1612062585482
+  igt: 3429
+  currentScore: 3000
+keyframe:
+  time: 1612062586503
+  igt: 3490
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 2
+  door: 0
+  currentScore: 3000
+  udjatEyeAvailable: False
+  player0.life: 4
+  player0.numBombs: 4
+  player0.numRopes: 3
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062587059
+  time: 1612062587059
+  igt: 3523
+  currentScore: 4500
+delta: 1612062590584
+  time: 1612062590584
+  igt: 3735
+  currentScore: 5000
+delta: 1612062599207
+  time: 1612062599207
+  igt: 4252
+  currentScore: 6500
+delta: 1612062603199
+  time: 1612062603199
+  igt: 4492
+  currentScore: 7000
+delta: 1612062604572
+  time: 1612062604572
+  igt: 4574
+  loading: 1
+  playing: False
+delta: 1612062604588
+  time: 1612062604588
+  igt: 4574
+  pause: 2
+delta: 1612062604867
+  time: 1612062604867
+  igt: 4574
+  loading: 2
+delta: 1612062604882
+  time: 1612062604882
+  igt: 4574
+  loading: 3
+  pause: 0
+  player0.life: 5
+delta: 1612062604897
+  time: 1612062604897
+  igt: 4574
+  pause: 2
+delta: 1612062605563
+  time: 1612062605563
+  igt: 4574
+  loading: 0
+  pause: 0
+delta: 1612062610460
+  time: 1612062610460
+  igt: 4574
+  loading: 1
+delta: 1612062610476
+  time: 1612062610476
+  igt: 4574
+  pause: 2
+delta: 1612062610755
+  time: 1612062610755
+  igt: 4574
+  loading: 2
+delta: 1612062610801
+  time: 1612062610801
+  igt: 4575
+  loading: 3
+  playing: True
+  level: 3
+delta: 1612062611451
+  time: 1612062611451
+  igt: 4576
+  loading: 0
+  pause: 0
+delta: 1612062612362
+  time: 1612062612362
+  igt: 4631
+  currentScore: 7500
+delta: 1612062626197
+  time: 1612062626197
+  igt: 5461
+  currentScore: 9000
+delta: 1612062637819
+  time: 1612062637819
+  igt: 6158
+  player0.numRopes: 2
+delta: 1612062640122
+  time: 1612062640122
+  igt: 6297
+  currentScore: 9800
+delta: 1612062641639
+  time: 1612062641639
+  igt: 6388
+  currentScore: 10300
+delta: 1612062645287
+  time: 1612062645287
+  igt: 6606
+  currentScore: 11500
+keyframe:
+  time: 1612062646507
+  igt: 6680
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 3
+  door: 0
+  currentScore: 11500
+  udjatEyeAvailable: False
+  player0.life: 5
+  player0.numBombs: 4
+  player0.numRopes: 2
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062651667
+  time: 1612062651667
+  igt: 6989
+  currentScore: 12000
+delta: 1612062658578
+  time: 1612062658578
+  igt: 7404
+  currentScore: 13000
+delta: 1612062667776
+  time: 1612062667776
+  igt: 7956
+  currentScore: 13100
+delta: 1612062668672
+  time: 1612062668672
+  igt: 8010
+  currentScore: 13600
+delta: 1612062668734
+  time: 1612062668734
+  igt: 8013
+  currentScore: 14100
+delta: 1612062668780
+  time: 1612062668780
+  igt: 8016
+  currentScore: 14600
+delta: 1612062677268
+  time: 1612062677268
+  igt: 8525
+  currentScore: 16100
+delta: 1612062677916
+  time: 1612062677916
+  igt: 8564
+  currentScore: 16600
+delta: 1612062678255
+  time: 1612062678255
+  igt: 8585
+  currentScore: 17100
+delta: 1612062704053
+  time: 1612062704053
+  igt: 10132
+  player0.numRopes: 1
+delta: 1612062704689
+  time: 1612062704689
+  igt: 10171
+  player0.numBombs: 16
+delta: 1612062704937
+  time: 1612062704937
+  igt: 10185
+  player0.numBombs: 28
+keyframe:
+  time: 1612062706512
+  igt: 10280
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 3
+  door: 0
+  currentScore: 17100
+  udjatEyeAvailable: False
+  player0.life: 5
+  player0.numBombs: 28
+  player0.numRopes: 1
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062712237
+  time: 1612062712237
+  igt: 10623
+  currentScore: 17600
+delta: 1612062713349
+  time: 1612062713349
+  igt: 10690
+  currentScore: 17800
+delta: 1612062713396
+  time: 1612062713396
+  igt: 10693
+  currentScore: 18400
+delta: 1612062713473
+  time: 1612062713473
+  igt: 10698
+  currentScore: 19400
+delta: 1612062714632
+  time: 1612062714632
+  igt: 10767
+  player0.numBombs: 27
+delta: 1612062718616
+  time: 1612062718616
+  igt: 11006
+  currentScore: 21100
+delta: 1612062718940
+  time: 1612062718940
+  igt: 11026
+  currentScore: 22700
+delta: 1612062719033
+  time: 1612062719033
+  igt: 11031
+  currentScore: 22800
+delta: 1612062719744
+  time: 1612062719744
+  igt: 11074
+  currentScore: 23600
+delta: 1612062719790
+  time: 1612062719790
+  igt: 11077
+  currentScore: 23700
+delta: 1612062728146
+  time: 1612062728146
+  igt: 11578
+  player0.life: 4
+delta: 1612062730049
+  time: 1612062730049
+  igt: 11692
+  currentScore: 24500
+delta: 1612062733417
+  time: 1612062733417
+  igt: 11894
+  player0.life: 0
+  player0.numBombs: 0
+  player0.numRopes: 0
+delta: 1612062733433
+  time: 1612062733433
+  igt: 11895
+  player0.life: 4
+  player0.numBombs: 27
+  player0.numRopes: 1
+delta: 1612062736060
+  time: 1612062736060
+  igt: 12053
+  loading: 1
+  playing: False
+delta: 1612062736076
+  time: 1612062736076
+  igt: 12053
+  pause: 2
+delta: 1612062736355
+  time: 1612062736355
+  igt: 12053
+  loading: 2
+delta: 1612062736386
+  time: 1612062736386
+  igt: 12053
+  loading: 3
+  pause: 0
+  player0.life: 5
+delta: 1612062736401
+  time: 1612062736401
+  igt: 12053
+  pause: 2
+delta: 1612062736942
+  time: 1612062736942
+  igt: 12053
+  loading: 0
+  pause: 0
+delta: 1612062742521
+  time: 1612062742521
+  igt: 12053
+  loading: 1
+delta: 1612062742537
+  time: 1612062742537
+  igt: 12053
+  pause: 2
+delta: 1612062742816
+  time: 1612062742816
+  igt: 12053
+  loading: 2
+delta: 1612062742877
+  time: 1612062742877
+  igt: 12054
+  loading: 3
+  playing: True
+  level: 4
+delta: 1612062743512
+  time: 1612062743512
+  igt: 12055
+  loading: 0
+  pause: 0
+keyframe:
+  time: 1612062766518
+  igt: 13436
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 4
+  door: 0
+  currentScore: 24500
+  udjatEyeAvailable: False
+  player0.life: 5
+  player0.numBombs: 27
+  player0.numRopes: 1
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062773802
+  time: 1612062773802
+  igt: 13873
+  currentScore: 25000
+delta: 1612062777471
+  time: 1612062777471
+  igt: 14093
+  player0.numBombs: 30
+delta: 1612062777487
+  time: 1612062777487
+  igt: 14094
+  player0.life: 6
+delta: 1612062778076
+  time: 1612062778076
+  igt: 14129
+  player0.numBombs: 29
+delta: 1612062779128
+  time: 1612062779128
+  igt: 14192
+  pause: 1
+delta: 1612062785650
+  time: 1612062785650
+  igt: 14526
+  pause: 0
+delta: 1612062789575
+  time: 1612062789575
+  igt: 14761
+  currentScore: 26500
+delta: 1612062791860
+  time: 1612062791860
+  igt: 14898
+  pause: 1
+keyframe:
+  time: 1612062826531
+  igt: 16946
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 1
+  world: 1
+  level: 4
+  door: 0
+  currentScore: 26500
+  udjatEyeAvailable: False
+  player0.life: 6
+  player0.numBombs: 29
+  player0.numRopes: 1
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062938300
+  time: 1612062938300
+  igt: 23621
+  pause: 0
+keyframe:
+  time: 1612062938315
+  igt: 23622
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 1
+  level: 4
+  door: 0
+  currentScore: 26500
+  udjatEyeAvailable: False
+  player0.life: 6
+  player0.numBombs: 29
+  player0.numRopes: 1
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612062947339
+  time: 1612062947339
+  igt: 24164
+  player0.numBombs: 32
+delta: 1612062974449
+  time: 1612062974449
+  igt: 25790
+  currentScore: 27500
+delta: 1612062985500
+  time: 1612062985500
+  igt: 26453
+  currentScore: 28500
+delta: 1612062985639
+  time: 1612062985639
+  igt: 26462
+  currentScore: 29500
+delta: 1612062992981
+  time: 1612062992981
+  igt: 26902
+  loading: 1
+  playing: False
+delta: 1612062992996
+  time: 1612062992996
+  igt: 26902
+  pause: 2
+delta: 1612062993274
+  time: 1612062993274
+  igt: 26902
+  loading: 2
+delta: 1612062993305
+  time: 1612062993305
+  igt: 26902
+  loading: 3
+  player0.life: 7
+delta: 1612062993599
+  time: 1612062993599
+  igt: 26902
+  loading: 0
+  pause: 0
+delta: 1612062993661
+  time: 1612062993661
+  igt: 26902
+  loading: 1
+delta: 1612062993677
+  time: 1612062993677
+  igt: 26902
+  pause: 2
+delta: 1612062993953
+  time: 1612062993953
+  igt: 26902
+  loading: 2
+delta: 1612062994062
+  time: 1612062994062
+  igt: 26903
+  loading: 3
+  playing: True
+  world: 2
+  level: 1
+delta: 1612062994649
+  time: 1612062994649
+  igt: 26904
+  loading: 0
+  pause: 0
+delta: 1612062997744
+  time: 1612062997744
+  igt: 27089
+  currentScore: 29625
+keyframe:
+  time: 1612062998316
+  igt: 27124
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 1
+  door: 0
+  currentScore: 29625
+  udjatEyeAvailable: False
+  player0.life: 7
+  player0.numBombs: 32
+  player0.numRopes: 1
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063012760
+  time: 1612063012760
+  igt: 27991
+  player0.numBombs: 31
+delta: 1612063015805
+  time: 1612063015805
+  igt: 28173
+  currentScore: 29750
+delta: 1612063025524
+  time: 1612063025524
+  igt: 28756
+  currentScore: 31000
+delta: 1612063025601
+  time: 1612063025601
+  igt: 28761
+  currentScore: 31625
+delta: 1612063052872
+  time: 1612063052872
+  igt: 30397
+  currentScore: 37875
+keyframe:
+  time: 1612063058318
+  igt: 30724
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 1
+  door: 0
+  currentScore: 37875
+  udjatEyeAvailable: False
+  player0.life: 7
+  player0.numBombs: 31
+  player0.numRopes: 1
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063065681
+  time: 1612063065681
+  igt: 31166
+  currentScore: 38500
+delta: 1612063068219
+  time: 1612063068219
+  igt: 31318
+  currentScore: 39125
+delta: 1612063075645
+  time: 1612063075645
+  igt: 31764
+  currentScore: 41000
+delta: 1612063076447
+  time: 1612063076447
+  igt: 31812
+  currentScore: 41625
+delta: 1612063077964
+  time: 1612063077964
+  igt: 31903
+  loading: 1
+  playing: False
+delta: 1612063077979
+  time: 1612063077979
+  igt: 31903
+  pause: 2
+delta: 1612063078273
+  time: 1612063078273
+  igt: 31903
+  loading: 2
+delta: 1612063078289
+  time: 1612063078289
+  igt: 31903
+  loading: 3
+  pause: 0
+delta: 1612063078304
+  time: 1612063078304
+  igt: 31903
+  pause: 2
+delta: 1612063078583
+  time: 1612063078583
+  igt: 31903
+  loading: 1
+  pause: 0
+delta: 1612063078598
+  time: 1612063078598
+  igt: 31903
+  pause: 2
+delta: 1612063078891
+  time: 1612063078891
+  igt: 31903
+  loading: 2
+delta: 1612063078984
+  time: 1612063078984
+  igt: 31904
+  loading: 3
+  playing: True
+  level: 2
+delta: 1612063079571
+  time: 1612063079571
+  igt: 31905
+  loading: 0
+  pause: 0
+delta: 1612063081721
+  time: 1612063081721
+  igt: 32034
+  currentScore: 42250
+delta: 1612063093101
+  time: 1612063093101
+  igt: 32717
+  currentScore: 32250
+delta: 1612063100365
+  time: 1612063100365
+  igt: 33153
+  currentScore: 32875
+delta: 1612063105678
+  time: 1612063105678
+  igt: 33472
+  currentScore: 33250
+delta: 1612063108382
+  time: 1612063108382
+  igt: 33634
+  currentScore: 35250
+keyframe:
+  time: 1612063118321
+  igt: 34230
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 2
+  door: 0
+  currentScore: 35250
+  udjatEyeAvailable: False
+  player0.life: 7
+  player0.numBombs: 31
+  player0.numRopes: 1
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063125558
+  time: 1612063125558
+  igt: 34664
+  currentScore: 35875
+delta: 1612063133539
+  time: 1612063133539
+  igt: 35143
+  player0.numBombs: 34
+delta: 1612063140065
+  time: 1612063140065
+  igt: 35535
+  currentScore: 36625
+delta: 1612063146806
+  time: 1612063146806
+  igt: 35939
+  currentScore: 38125
+delta: 1612063150332
+  time: 1612063150332
+  igt: 36151
+  currentScore: 38250
+delta: 1612063152017
+  time: 1612063152017
+  igt: 36252
+  currentScore: 38375
+delta: 1612063152032
+  time: 1612063152032
+  igt: 36253
+  currentScore: 38500
+delta: 1612063152372
+  time: 1612063152372
+  igt: 36273
+  currentScore: 38625
+delta: 1612063153747
+  time: 1612063153747
+  igt: 36356
+  player0.numBombs: 33
+delta: 1612063157320
+  time: 1612063157320
+  igt: 36570
+  currentScore: 38750
+delta: 1612063157490
+  time: 1612063157490
+  igt: 36580
+  currentScore: 38875
+delta: 1612063157521
+  time: 1612063157521
+  igt: 36582
+  currentScore: 39000
+delta: 1612063172515
+  time: 1612063172515
+  igt: 37482
+  currentScore: 39375
+delta: 1612063172871
+  time: 1612063172871
+  igt: 37503
+  currentScore: 40000
+delta: 1612063175332
+  time: 1612063175332
+  igt: 37651
+  currentScore: 40375
+delta: 1612063176261
+  time: 1612063176261
+  igt: 37707
+  currentScore: 41625
+delta: 1612063177050
+  time: 1612063177050
+  igt: 37754
+  currentScore: 42250
+keyframe:
+  time: 1612063178334
+  igt: 37831
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 2
+  door: 0
+  currentScore: 42250
+  udjatEyeAvailable: False
+  player0.life: 7
+  player0.numBombs: 33
+  player0.numRopes: 1
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063180884
+  time: 1612063180884
+  igt: 37984
+  currentScore: 44125
+delta: 1612063190298
+  time: 1612063190298
+  igt: 38549
+  currentScore: 44250
+delta: 1612063195848
+  time: 1612063195848
+  igt: 38882
+  currentScore: 46125
+delta: 1612063196480
+  time: 1612063196480
+  igt: 38920
+  currentScore: 47375
+delta: 1612063199405
+  time: 1612063199405
+  igt: 39095
+  currentScore: 48625
+delta: 1612063211918
+  time: 1612063211918
+  igt: 39846
+  player0.numRopes: 0
+delta: 1612063217282
+  time: 1612063217282
+  igt: 40168
+  currentScore: 49000
+delta: 1612063220991
+  time: 1612063220991
+  igt: 40390
+  currentScore: 50875
+delta: 1612063233022
+  time: 1612063233022
+  igt: 41112
+  currentScore: 51000
+delta: 1612063233750
+  time: 1612063233750
+  igt: 41156
+  currentScore: 51125
+delta: 1612063236224
+  time: 1612063236224
+  igt: 41304
+  loading: 1
+  playing: False
+delta: 1612063236239
+  time: 1612063236239
+  igt: 41304
+  pause: 2
+delta: 1612063236516
+  time: 1612063236516
+  igt: 41304
+  loading: 2
+delta: 1612063236547
+  time: 1612063236547
+  igt: 41304
+  loading: 3
+delta: 1612063236840
+  time: 1612063236840
+  igt: 41304
+  loading: 0
+  pause: 0
+delta: 1612063236964
+  time: 1612063236964
+  igt: 41304
+  loading: 1
+delta: 1612063236995
+  time: 1612063236995
+  igt: 41304
+  pause: 2
+delta: 1612063237273
+  time: 1612063237273
+  igt: 41304
+  loading: 2
+delta: 1612063237397
+  time: 1612063237397
+  igt: 41305
+  loading: 3
+  playing: True
+  level: 3
+delta: 1612063237970
+  time: 1612063237970
+  igt: 41306
+  loading: 0
+  pause: 0
+keyframe:
+  time: 1612063238342
+  igt: 41328
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 3
+  door: 0
+  currentScore: 51125
+  udjatEyeAvailable: False
+  player0.life: 7
+  player0.numBombs: 33
+  player0.numRopes: 0
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063252026
+  time: 1612063252026
+  igt: 42149
+  currentScore: 51750
+delta: 1612063282234
+  time: 1612063282234
+  igt: 43962
+  currentScore: 52750
+delta: 1612063284891
+  time: 1612063284891
+  igt: 44120
+  pause: 1
+delta: 1612063289695
+  time: 1612063289695
+  igt: 44351
+  pause: 0
+keyframe:
+  time: 1612063298343
+  igt: 44870
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 3
+  door: 0
+  currentScore: 52750
+  udjatEyeAvailable: False
+  player0.life: 7
+  player0.numBombs: 33
+  player0.numRopes: 0
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063298590
+  time: 1612063298590
+  igt: 44884
+  player0.life: 0
+  player0.numBombs: 0
+delta: 1612063298606
+  time: 1612063298606
+  igt: 44886
+  player0.life: 7
+  player0.numBombs: 33
+delta: 1612063311429
+  time: 1612063311429
+  igt: 45655
+  currentScore: 53375
+delta: 1612063336456
+  time: 1612063336456
+  igt: 47157
+  player0.numBombs: 32
+delta: 1612063340962
+  time: 1612063340962
+  igt: 47427
+  currentScore: 54000
+delta: 1612063341147
+  time: 1612063341147
+  igt: 47438
+  currentScore: 54125
+delta: 1612063341609
+  time: 1612063341609
+  igt: 47466
+  currentScore: 54250
+keyframe:
+  time: 1612063358354
+  igt: 48470
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 3
+  door: 0
+  currentScore: 54250
+  udjatEyeAvailable: False
+  player0.life: 7
+  player0.numBombs: 32
+  player0.numRopes: 0
+  player0.hasAnkh: False
+  player0.hasKapala: False
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063368236
+  time: 1612063368236
+  igt: 49063
+  player0.hasKapala: True
+delta: 1612063375139
+  time: 1612063375139
+  igt: 49478
+  currentScore: 56250
+delta: 1612063375401
+  time: 1612063375401
+  igt: 49494
+  currentScore: 56375
+delta: 1612063375740
+  time: 1612063375740
+  igt: 49514
+  currentScore: 57125
+delta: 1612063378781
+  time: 1612063378781
+  igt: 49696
+  currentScore: 59000
+delta: 1612063380620
+  time: 1612063380620
+  igt: 49807
+  loading: 1
+  playing: False
+delta: 1612063380636
+  time: 1612063380636
+  igt: 49807
+  pause: 2
+delta: 1612063380929
+  time: 1612063380929
+  igt: 49807
+  loading: 2
+delta: 1612063380945
+  time: 1612063380945
+  igt: 49807
+  loading: 3
+  pause: 0
+delta: 1612063380960
+  time: 1612063380960
+  igt: 49807
+  pause: 2
+delta: 1612063381238
+  time: 1612063381238
+  igt: 49807
+  loading: 1
+  pause: 0
+delta: 1612063381254
+  time: 1612063381254
+  igt: 49807
+  pause: 2
+delta: 1612063381547
+  time: 1612063381547
+  igt: 49807
+  loading: 2
+delta: 1612063381640
+  time: 1612063381640
+  igt: 49808
+  loading: 3
+  playing: True
+  level: 4
+delta: 1612063382225
+  time: 1612063382225
+  igt: 49809
+  loading: 0
+  pause: 0
+delta: 1612063384862
+  time: 1612063384862
+  igt: 49967
+  currentScore: 59625
+delta: 1612063385231
+  time: 1612063385231
+  igt: 49989
+  currentScore: 61500
+delta: 1612063388845
+  time: 1612063388845
+  igt: 50206
+  player0.life: 8
+keyframe:
+  time: 1612063418354
+  igt: 51977
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 4
+  door: 0
+  currentScore: 61500
+  udjatEyeAvailable: False
+  player0.life: 8
+  player0.numBombs: 32
+  player0.numRopes: 0
+  player0.hasAnkh: False
+  player0.hasKapala: True
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063421408
+  time: 1612063421408
+  igt: 52160
+  currentScore: 62125
+delta: 1612063425638
+  time: 1612063425638
+  igt: 52414
+  currentScore: 62250
+delta: 1612063436489
+  time: 1612063436489
+  igt: 53065
+  currentScore: 46250
+  player0.numBombs: 44
+delta: 1612063441550
+  time: 1612063441550
+  igt: 53368
+  player0.numBombs: 43
+delta: 1612063446140
+  time: 1612063446140
+  igt: 53644
+  currentScore: 46375
+delta: 1612063446356
+  time: 1612063446356
+  igt: 53657
+  player0.numBombs: 42
+delta: 1612063446540
+  time: 1612063446540
+  igt: 53668
+  currentScore: 46500
+delta: 1612063447064
+  time: 1612063447064
+  igt: 53699
+  currentScore: 46625
+delta: 1612063462646
+  time: 1612063462646
+  igt: 54634
+  player0.life: 9
+delta: 1612063462878
+  time: 1612063462878
+  igt: 54648
+  player0.life: 15
+delta: 1612063476978
+  time: 1612063476978
+  igt: 55494
+  player0.life: 16
+keyframe:
+  time: 1612063478354
+  igt: 55577
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 4
+  door: 0
+  currentScore: 46625
+  udjatEyeAvailable: False
+  player0.life: 16
+  player0.numBombs: 42
+  player0.numRopes: 0
+  player0.hasAnkh: False
+  player0.hasKapala: True
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063485297
+  time: 1612063485297
+  igt: 55993
+  currentScore: 47875
+delta: 1612063485375
+  time: 1612063485375
+  igt: 55998
+  currentScore: 48500
+delta: 1612063488016
+  time: 1612063488016
+  igt: 56156
+  currentScore: 50000
+delta: 1612063491690
+  time: 1612063491690
+  igt: 56377
+  currentScore: 51875
+delta: 1612063494056
+  time: 1612063494056
+  igt: 56519
+  currentScore: 53125
+delta: 1612063495691
+  time: 1612063495691
+  igt: 56617
+  currentScore: 54375
+delta: 1612063496309
+  time: 1612063496309
+  igt: 56654
+  currentScore: 55625
+delta: 1612063507758
+  time: 1612063507758
+  igt: 57341
+  player0.numRopes: 3
+delta: 1612063509797
+  time: 1612063509797
+  igt: 57463
+  player0.numRopes: 6
+delta: 1612063512979
+  time: 1612063512979
+  igt: 57654
+  currentScore: 56875
+delta: 1612063517790
+  time: 1612063517790
+  igt: 57943
+  player0.life: 14
+delta: 1612063519104
+  time: 1612063519104
+  igt: 58022
+  player0.life: 13
+delta: 1612063524496
+  time: 1612063524496
+  igt: 58345
+  currentScore: 57500
+delta: 1612063530620
+  time: 1612063530620
+  igt: 58713
+  currentScore: 58750
+delta: 1612063530775
+  time: 1612063530775
+  igt: 58722
+  currentScore: 60625
+keyframe:
+  time: 1612063538365
+  igt: 59177
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 4
+  door: 0
+  currentScore: 60625
+  udjatEyeAvailable: False
+  player0.life: 13
+  player0.numBombs: 42
+  player0.numRopes: 6
+  player0.hasAnkh: False
+  player0.hasKapala: True
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063555142
+  time: 1612063555142
+  igt: 60184
+  currentScore: 61875
+delta: 1612063568147
+  time: 1612063568147
+  igt: 60964
+  player0.life: 12
+delta: 1612063573473
+  time: 1612063573473
+  igt: 61284
+  player0.life: 11
+delta: 1612063576373
+  time: 1612063576373
+  igt: 61458
+  player0.life: 10
+delta: 1612063591238
+  time: 1612063591238
+  igt: 62350
+  player0.life: 11
+delta: 1612063592751
+  time: 1612063592751
+  igt: 62440
+  player0.life: 12
+delta: 1612063593817
+  time: 1612063593817
+  igt: 62505
+  player0.life: 13
+delta: 1612063597212
+  time: 1612063597212
+  igt: 62708
+  player0.life: 14
+keyframe:
+  time: 1612063598370
+  igt: 62778
+  loading: 0
+  ingame: True
+  playing: True
+  pause: 0
+  world: 2
+  level: 4
+  door: 0
+  currentScore: 61875
+  udjatEyeAvailable: False
+  player0.life: 14
+  player0.numBombs: 42
+  player0.numRopes: 6
+  player0.hasAnkh: False
+  player0.hasKapala: True
+  player0.isPoisoned: False
+  player0.isCursed: False
+delta: 1612063600681
+  time: 1612063600681
+  igt: 62916
+  player0.life: 15
+delta: 1612063602069
+  time: 1612063602069
+  igt: 63000
+  player0.life: 16
+delta: 1612063603273
+  time: 1612063603273
+  igt: 63072
+  player0.life: 17
+delta: 1612063603830
+  time: 1612063603830
+  igt: 63105
+  player0.life: 18
+delta: 1612063607772
+  time: 1612063607772
+  igt: 63342
+  player0.life: 19
+delta: 1612063610462
+  time: 1612063610462
+  igt: 63503
+  player0.life: 18
+delta: 1612063611019
+  time: 1612063611019
+  igt: 63537
+  player0.life: 17
+delta: 1612063612752
+  time: 1612063612752
+  igt: 63641
+  player0.life: 16
+delta: 1612063614110
+  time: 1612063614110
+  igt: 63722
+  player0.life: 0
+  player0.numBombs: 0
+  player0.numRopes: 0
+  player0.hasKapala: False
+delta: 1612063616614
+  time: 1612063616614
+  igt: 63872
+  loading: 1
+  playing: False
+delta: 1612063616629
+  time: 1612063616629
+  igt: 63872
+  pause: 2
+delta: 1612063616907
+  time: 1612063616907
+  igt: 63872
+  loading: 2
+delta: 1612063616938
+  time: 1612063616938
+  igt: 63872
+  loading: 3
+delta: 1612063617233
+  time: 1612063617233
+  igt: 63872
+  loading: 0
+  pause: 0
+delta: 1612063618699
+  time: 1612063618699
+  igt: 63872
+  loading: 1
+delta: 1612063618715
+  time: 1612063618715
+  igt: 63872
+  pause: 2
+delta: 1612063618992
+  time: 1612063618992
+  igt: 63872
+  loading: 2
+delta: 1612063619008
+  time: 1612063619008
+  igt: 63872
+  loading: 3
+  pause: 0
+delta: 1612063619039
+  time: 1612063619039
+  igt: 63872
+  pause: 2
+delta: 1612063619318
+  time: 1612063619318
+  igt: 63872
+  loading: 0
+  pause: 0
+delta: 1612063620555
+  time: 1612063620555
+  igt: 63872
+  loading: 1
+  ingame: False
+delta: 1612063620570
+  time: 1612063620570
+  igt: 63872
+  pause: 2
+delta: 1612063620849
+  time: 1612063620849
+  igt: 63872
+  loading: 2
+delta: 1612063620880
+  time: 1612063620880
+  igt: 63872
+  loading: 3
+  pause: 0
+delta: 1612063620895
+  time: 1612063620895
+  igt: 63872
+  loading: 0

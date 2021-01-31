@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,6 +23,11 @@ namespace Spelunky2EventLogger
 
         public static AppConfiguration Configuration { get; set; }
 
+        private static string FormatTimeStamp(DateTime time)
+        {
+            return Math.Round((time - DateTime.UnixEpoch).TotalMilliseconds).ToString("F0");
+        }
+
         private static async Task<int> Main(string[] args)
         {
             var configBuilder = new ConfigurationBuilder();
@@ -32,7 +36,7 @@ namespace Spelunky2EventLogger
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
                     [$"{nameof(AppConfiguration.PollPeriodMilliseconds)}"] = "10",
-                    [$"{nameof(AppConfiguration.KeyframePeriodMilliseconds)}"] = "30000",
+                    [$"{nameof(AppConfiguration.KeyframePeriodMilliseconds)}"] = "60000",
                     [$"{nameof(AppConfiguration.OutputDirectory)}"] = "{userprofile}\\Videos\\Spelunky 2",
                     [$"{nameof(AppConfiguration.OutputFileName)}"] = "Spelunky 2 {utcNow:yyyy.MM.dd} - {utcNow:HH.mm.ss.ff}.DVR.log",
                 })
@@ -117,9 +121,11 @@ namespace Spelunky2EventLogger
 
                     changesSinceKeyframe = false;
 
-                    writer.WriteLine($"keyframe \"{now:O}\":");
+                    writer.WriteLine("keyframe:");
+                    writer.WriteLine($"  time: {FormatTimeStamp(now)}");
+                    writer.WriteLine($"  igt: {autoSplitter.igt}");
                     PrintFields(writer, autoSplitter);
-                    PrintFields(writer, player);
+                    PrintFields(writer, player, "player0.");
 
                     await writer.FlushAsync();
                 }
@@ -135,9 +141,11 @@ namespace Spelunky2EventLogger
                     {
                         changesSinceKeyframe = true;
 
-                        writer.WriteLine($"delta: \"{now:O}\":");
+                        writer.WriteLine($"delta: {FormatTimeStamp(now)}");
+                        writer.WriteLine($"  time: {FormatTimeStamp(now)}");
+                        writer.WriteLine($"  igt: {autoSplitter.igt}");
                         PrintChangedFields(writer, autoSplitterChangedFields, autoSplitter);
-                        PrintChangedFields(writer, playerChangedFields, player);
+                        PrintChangedFields(writer, playerChangedFields, player, "player0.");
                     }
                 }
 

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Spelunky2AutoEditor": {
+      "commandName": "Project",
+      "commandLineArgs": "--input-video \"daily-2021-01-30.mp4\" --input-events \"daily-2021-01-30.log\"",
+      "workingDirectory": "D:\\HardDiskShare\\UserFolder\\Videos\\Spelunky 2"
+    }
+  }
+}

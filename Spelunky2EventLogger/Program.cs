@@ -32,7 +32,7 @@ namespace Spelunky2EventLogger
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
                     [$"{nameof(AppConfiguration.PollPeriodMilliseconds)}"] = "10",
-                    [$"{nameof(AppConfiguration.KeyframePeriodMilliseconds)}"] = "5000",
+                    [$"{nameof(AppConfiguration.KeyframePeriodMilliseconds)}"] = "30000",
                     [$"{nameof(AppConfiguration.OutputDirectory)}"] = "{userprofile}\\Videos\\Spelunky 2",
                     [$"{nameof(AppConfiguration.OutputFileName)}"] = "Spelunky 2 {utcNow:yyyy.MM.dd} - {utcNow:HH.mm.ss.ff}.DVR.log",
                 })

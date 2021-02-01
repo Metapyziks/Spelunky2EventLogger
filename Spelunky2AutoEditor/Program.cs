@@ -318,7 +318,8 @@ namespace Spelunky2AutoEditor
 
             foreach (var update in ReadStateUpdates(inputEventsPath))
             {
-                if (update.type == UpdateType.Delta && update.player0.life < player0State.life)
+                if (update.type == UpdateType.Delta && update.player0.life < player0State.life
+                    && gameState.ingame == true && gameState.playing == true && gameState.pause == false)
                 {
                     Console.WriteLine($"{update.time}: Took {player0State.life.Value - update.player0.life.Value} damage!");
                     clips.Add(new TimeRange(update.time - videoStartUtc, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));

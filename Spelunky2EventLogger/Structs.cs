@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Spelunky2EventLogger
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class PrintAttribute : Attribute { }
+    public class IgnoreChangeAttribute : Attribute { }
 
     public interface IGameStruct { }
 
@@ -16,106 +18,111 @@ namespace Spelunky2EventLogger
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct AutoSplitter : IGameStruct
     {
-        public ulong magic;
-        public ulong uniq;
-        public uint counter;
-        public byte screen;
-        [Print]
-        public byte loading;
-        public byte trans;
-        [Print, MarshalAs(UnmanagedType.U1)]
+        [JsonIgnore] public ulong magic;
+        [JsonIgnore] public ulong uniq;
+        [JsonIgnore] public uint counter;
+        [JsonIgnore] public byte screen;
+        [JsonIgnore] public byte loading;
+        [JsonProperty("loading")]
+        public bool IsLoading => loading != 0;
+        [JsonIgnore] public byte trans;
+        [MarshalAs(UnmanagedType.U1)]
         public bool ingame;
-        [Print, MarshalAs(UnmanagedType.U1)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool playing;
-        [MarshalAs(UnmanagedType.U1)]
-        public bool playing2;
-        [Print]
-        public byte pause;
-        [MarshalAs(UnmanagedType.U1)]
+        [JsonIgnore, MarshalAs(UnmanagedType.U1)] public bool playing2;
+        [JsonIgnore] public byte pause;
+        [JsonProperty("pause"), MarshalAs(UnmanagedType.U1)]
         public bool pause2;
+        [IgnoreChange]
         public uint igt;
-        [Print]
         public byte world;
-        [Print]
         public byte level;
-        [Print]
         public byte door;
-        public uint characters;
-        public uint unlockedCharacterCount;
-        public byte shortcuts;
-        public uint tries;
-        public uint deaths;
-        public uint normalWins;
-        public uint hardWins;
-        public uint specialWins;
-        public ulong averageScore;
-        public uint topScore;
-        public ulong averageTime;
-        public uint bestTime;
-        public byte bestWorld;
-        public byte bestLevel;
-        [Print]
+        [JsonIgnore] public uint characters;
+        [JsonIgnore] public uint unlockedCharacterCount;
+        [JsonIgnore] public byte shortcuts;
+        [JsonIgnore] public uint tries;
+        [JsonIgnore] public uint deaths;
+        [JsonIgnore] public uint normalWins;
+        [JsonIgnore] public uint hardWins;
+        [JsonIgnore] public uint specialWins;
+        [JsonIgnore] public ulong averageScore;
+        [JsonIgnore] public uint topScore;
+        [JsonIgnore] public ulong averageTime;
+        [JsonIgnore] public uint bestTime;
+        [JsonIgnore] public byte bestWorld;
+        [JsonIgnore] public byte bestLevel;
         public ulong currentScore;
-        [Print, MarshalAs(UnmanagedType.U1)]
-        public bool udjatEyeAvailable;
         [MarshalAs(UnmanagedType.U1)]
-        public bool seededRun;
+        public bool udjatEyeAvailable;
+        [JsonIgnore, MarshalAs(UnmanagedType.U1)] public bool seededRun;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public unsafe struct Player : IGameStruct
     {
-        [MarshalAs(UnmanagedType.U1)]
-        public bool used;
-        [Print]
+        [JsonIgnore, MarshalAs(UnmanagedType.U1)] public bool used;
         public byte life;
-        [Print]
         public byte numBombs;
-        [Print]
         public byte numRopes;
-        [Print, MarshalAs(UnmanagedType.U1)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool hasAnkh;
-        [Print, MarshalAs(UnmanagedType.U1)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool hasKapala;
-        [Print, MarshalAs(UnmanagedType.U1)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool isPoisoned;
-        [Print, MarshalAs(UnmanagedType.U1)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool isCursed;
-        public fixed byte reserved[128];
+        [JsonIgnore] public fixed byte reserved[128];
     }
 
     public partial class Program
     {
-        public static void PrintFields<T>(TextWriter writer, in T value, string prefix = "")
+        public static JObject GetFields<T>(in T value)
             where T : struct, IGameStruct
         {
-            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                if (fieldInfo.GetCustomAttribute<PrintAttribute>() == null) continue;
-
-                writer.WriteLine($"  {prefix}{fieldInfo.Name}: {fieldInfo.GetValue(value)}");
-            }
+            return JObject.FromObject(value);
         }
 
-        public static bool GetChangedFields<T>(List<FieldInfo> outChangedFields, in T oldValue, in T newValue)
+        public static bool HaveFieldsChanged<T>(in T oldValue, in T newValue)
+        {
+            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                if (fieldInfo.GetCustomAttribute<JsonIgnoreAttribute>() != null) continue;
+                if (fieldInfo.GetCustomAttribute<IgnoreChangeAttribute>() != null) continue;
+
+                var oldFieldValue = fieldInfo.GetValue(oldValue);
+                var newFieldValue = fieldInfo.GetValue(newValue);
+
+                if (!oldFieldValue.Equals(newFieldValue)) return true;
+            }
+
+            return false;
+        }
+
+        public static JObject GetChangedFields<T>(in T oldValue, in T newValue)
             where T : struct, IGameStruct
         {
-            var anyChanges = false;
+            JObject outObj = null;
 
             foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
-                if (fieldInfo.GetCustomAttribute<PrintAttribute>() == null) continue;
+                if (fieldInfo.GetCustomAttribute<JsonIgnoreAttribute>() != null) continue;
 
                 var oldFieldValue = fieldInfo.GetValue(oldValue);
                 var newFieldValue = fieldInfo.GetValue(newValue);
 
                 if (oldFieldValue.Equals(newFieldValue)) continue;
 
-                outChangedFields.Add(fieldInfo);
-                anyChanges = true;
+                var jsonPropertyAttrib = fieldInfo.GetCustomAttribute<JsonPropertyAttribute>();
+                var name = jsonPropertyAttrib?.PropertyName ?? fieldInfo.Name;
+
+                if (outObj == null) outObj = new JObject();
+                outObj.Add(name, JToken.FromObject(newFieldValue));
             }
 
-            return anyChanges;
+            return outObj;
         }
 
         public static void PrintChangedFields<T>(TextWriter writer, List<FieldInfo> changedFields, in T value, string prefix = "")

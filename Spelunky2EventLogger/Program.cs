@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Spelunky2EventLogger
 {
@@ -23,9 +25,9 @@ namespace Spelunky2EventLogger
 
         public static AppConfiguration Configuration { get; set; }
 
-        private static string FormatTimeStamp(DateTime time)
+        private static long GetUnixTimeStamp(DateTime time)
         {
-            return Math.Round((time - DateTime.UnixEpoch).TotalMilliseconds).ToString("F0");
+            return (long) Math.Round((time - DateTime.UnixEpoch).TotalMilliseconds);
         }
 
         private static async Task<int> Main(string[] args)
@@ -102,50 +104,66 @@ namespace Spelunky2EventLogger
 
             var firstKeyframe = true;
 
+            AutoSplitter autoSplitterWritten = default;
             AutoSplitter autoSplitterPrev = default;
+            Player playerWritten = default;
             Player playerPrev = default;
 
-            var autoSplitterChangedFields = new List<FieldInfo>();
-            var playerChangedFields = new List<FieldInfo>();
-
-            var changesSinceKeyframe = true;
+            var changedSinceKeyframe = true;
 
             while (scanner.ReadStructure<AutoSplitter>(autoSplitterAddress, out var autoSplitter) && scanner.ReadStructure<Player>(playerAddress, out var player))
             {
                 var now = DateTime.UtcNow;
 
-                if (changesSinceKeyframe && (firstKeyframe || keyframeTimer.ElapsedMilliseconds >= Configuration.KeyframePeriodMilliseconds))
+                if (changedSinceKeyframe && (firstKeyframe || keyframeTimer.ElapsedMilliseconds >= Configuration.KeyframePeriodMilliseconds))
                 {
                     keyframeTimer.Restart();
                     firstKeyframe = false;
 
-                    changesSinceKeyframe = false;
+                    changedSinceKeyframe = false;
 
-                    writer.WriteLine("keyframe:");
-                    writer.WriteLine($"  time: {FormatTimeStamp(now)}");
-                    writer.WriteLine($"  igt: {autoSplitter.igt}");
-                    PrintFields(writer, autoSplitter);
-                    PrintFields(writer, player, "player0.");
-
-                    await writer.FlushAsync();
-                }
-                else
-                {
-                    autoSplitterChangedFields.Clear();
-                    playerChangedFields.Clear();
-
-                    var autoSplitterChanged = GetChangedFields(autoSplitterChangedFields, autoSplitterPrev, autoSplitter);
-                    var playerChanged = GetChangedFields(playerChangedFields, playerPrev, player);
-
-                    if (autoSplitterChanged || playerChanged)
+                    writer.Write(new JObject
                     {
-                        changesSinceKeyframe = true;
+                        ["type"] = "Keyframe",
+                        ["time"] = GetUnixTimeStamp(now),
+                        ["game"] = GetFields(in autoSplitter),
+                        ["player0"] = GetFields(in player)
+                    });
+                    writer.WriteLine(",");
+                    await writer.FlushAsync();
 
-                        writer.WriteLine($"delta: {FormatTimeStamp(now)}");
-                        writer.WriteLine($"  time: {FormatTimeStamp(now)}");
-                        writer.WriteLine($"  igt: {autoSplitter.igt}");
-                        PrintChangedFields(writer, autoSplitterChangedFields, autoSplitter);
-                        PrintChangedFields(writer, playerChangedFields, player, "player0.");
+                    autoSplitterWritten = autoSplitter;
+                    playerWritten = player;
+                }
+                else if (autoSplitterPrev.uniq != autoSplitter.uniq)
+                {
+                    var stable = !HaveFieldsChanged(autoSplitterPrev, autoSplitter)
+                        && !HaveFieldsChanged(playerPrev, player);
+
+                    var changedSinceWrite = HaveFieldsChanged(autoSplitterWritten, autoSplitter)
+                        || HaveFieldsChanged(playerWritten, player);
+
+                    if (stable && changedSinceWrite)
+                    {
+                        changedSinceKeyframe = true;
+
+                        var delta = new JObject
+                        {
+                            ["type"] = "Delta",
+                            ["time"] = GetUnixTimeStamp(now)
+                        };
+
+                        var gameChanged = GetChangedFields(autoSplitterWritten, autoSplitterPrev);
+                        var player0Changed = GetChangedFields(playerWritten, playerPrev);
+
+                        if (gameChanged != null) delta.Add("game", gameChanged);
+                        if (player0Changed != null) delta.Add("player0", player0Changed);
+
+                        writer.Write(delta);
+                        writer.WriteLine(",");
+
+                        autoSplitterWritten = autoSplitter;
+                        playerWritten = player;
                     }
                 }
 

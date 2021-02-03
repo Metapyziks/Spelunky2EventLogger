@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -83,7 +84,7 @@ namespace Spelunky2AutoEditor
             isCursed = delta.isCursed ?? isCursed;
         }
     }
-
+    
     public struct TimeRange : IEquatable<TimeRange>
     {
         public static TimeRange Union(TimeRange a, TimeRange b)
@@ -303,9 +304,22 @@ namespace Spelunky2AutoEditor
                 return 1;
             }
 
+            if (videoDuration == default && inputVideoPath != null)
+            {
+                try
+                {
+                    videoDuration = GetVideoLength(inputVideoPath);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    return 1;
+                }
+            }
+
             if (videoDuration == default)
             {
-                Console.WriteLine($"Unable to determine video duration. (TODO: read from video metadata)");
+                Console.WriteLine("Unable to determine video duration.");
                 return 1;
             }
 
@@ -313,23 +327,49 @@ namespace Spelunky2AutoEditor
             var gameState = new GameState();
             var player0State = new PlayerState();
 
+            var lastValidGameState = new GameState();
+            var lastValidPlayer0State = new PlayerState();
+
             var beforeEventTime = TimeSpan.FromSeconds(3d);
             var afterEventTime = TimeSpan.FromSeconds(1d);
 
             foreach (var update in ReadStateUpdates(inputEventsPath))
             {
-                if (update.type == UpdateType.Delta && update.player0.life < player0State.life
-                    && gameState.ingame == true && gameState.playing == true && gameState.pause == false)
-                {
-                    Console.WriteLine($"{update.time}: Took {player0State.life.Value - update.player0.life.Value} damage!");
-                    clips.Add(new TimeRange(update.time - videoStartUtc, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
-                }
-
                 gameState.Update(update.game);
                 player0State.Update(update.player0);
+
+                var valid = gameState.ingame == true && gameState.playing == true && gameState.pause == false && gameState.loading == false;
+
+                if (!valid) continue;
+
+                var levelChanged = gameState.level != lastValidGameState.level;
+                var worldChanged = gameState.world != lastValidGameState.world;
+
+                var scoreChanged = gameState.currentScore != lastValidGameState.currentScore;
+
+                var lifeChanged = player0State.life != lastValidPlayer0State.life;
+                var ropesChanged = player0State.numRopes != lastValidPlayer0State.numRopes;
+                var bombsChanged = player0State.numBombs != lastValidPlayer0State.numBombs;
+                var kapalaChanged = player0State.hasKapala != lastValidPlayer0State.hasAnkh;
+                var ankhChanged = player0State.hasAnkh != lastValidPlayer0State.hasAnkh;
+                var poisonedChanged = player0State.isPoisoned != lastValidPlayer0State.isPoisoned;
+                var cursedChanged = player0State.isCursed != lastValidPlayer0State.isCursed;
+
+                if (worldChanged || lifeChanged || !player0State.hasAnkh.Value && lastValidPlayer0State.hasAnkh.Value || poisonedChanged || cursedChanged)
+                {
+                    clips.Add(new TimeRange(update.time - videoStartUtc, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
+                }
+                else if (levelChanged || gameState.currentScore < lastValidGameState.currentScore || kapalaChanged || ankhChanged)
+                {
+                    clips.Add(new TimeRange(update.time - videoStartUtc, TimeSpan.Zero).Extend(beforeEventTime * 0.5, afterEventTime * 0.5));
+                }
+
+                lastValidGameState = gameState;
+                lastValidPlayer0State = player0State;
             }
 
-            TimeRange.RemoveIntersections(clips, TimeSpan.FromSeconds(5d));
+            clips.Sort((a, b) => a.Start.CompareTo(b.Start));
+            TimeRange.RemoveIntersections(clips, TimeSpan.FromSeconds(3d));
             TimeRange.TruncateOutsideRange(clips, new TimeRange(TimeSpan.Zero, videoDuration));
 
             var writer = new StringWriter();
@@ -363,7 +403,38 @@ namespace Spelunky2AutoEditor
                 Console.WriteLine(writer);
             }
 
+            Console.WriteLine($"Total duration: {clips.Aggregate(TimeSpan.Zero, (s, x) => s + x.Duration)}");
+
             return 0;
+        }
+
+        private static readonly Regex DurationRegex = new Regex(@"^\s*Duration: (?<duration>[0-9:.]+),", RegexOptions.Multiline);
+
+        static TimeSpan GetVideoLength(string path)
+        {
+            var processStart = new ProcessStartInfo("ffmpeg.exe")
+            {
+                ArgumentList =
+                {
+                    "-i", path
+                },
+                UseShellExecute = false,
+                ErrorDialog = false,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(processStart);
+            var result = process.StandardError.ReadToEnd();
+
+            var match = DurationRegex.Match(result);
+
+            if (match.Success)
+            {
+                return TimeSpan.Parse(match.Groups["duration"].Value);
+            }
+
+            throw new Exception("Unable to determine duration of video file.");
         }
 
         static IEnumerable<StateUpdate> ReadStateUpdates(string path)

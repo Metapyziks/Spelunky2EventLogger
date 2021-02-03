@@ -333,10 +333,20 @@ namespace Spelunky2AutoEditor
             var beforeEventTime = TimeSpan.FromSeconds(3d);
             var afterEventTime = TimeSpan.FromSeconds(1d);
 
+            var first = true;
+
             foreach (var update in ReadStateUpdates(inputEventsPath))
             {
                 gameState.Update(update.game);
                 player0State.Update(update.player0);
+
+                if (first)
+                {
+                    first = false;
+
+                    lastValidGameState.Update(gameState);
+                    lastValidPlayer0State.Update(player0State);
+                }
 
                 var valid = gameState.ingame == true && gameState.playing == true && gameState.pause == false && gameState.loading == false;
 
@@ -347,21 +357,86 @@ namespace Spelunky2AutoEditor
 
                 var scoreChanged = gameState.currentScore != lastValidGameState.currentScore;
 
-                var lifeChanged = player0State.life != lastValidPlayer0State.life;
-                var ropesChanged = player0State.numRopes != lastValidPlayer0State.numRopes;
-                var bombsChanged = player0State.numBombs != lastValidPlayer0State.numBombs;
-                var kapalaChanged = player0State.hasKapala != lastValidPlayer0State.hasAnkh;
-                var ankhChanged = player0State.hasAnkh != lastValidPlayer0State.hasAnkh;
-                var poisonedChanged = player0State.isPoisoned != lastValidPlayer0State.isPoisoned;
-                var cursedChanged = player0State.isCursed != lastValidPlayer0State.isCursed;
+                var lostHealth = player0State.life < lastValidPlayer0State.life;
+                var gainedLotsHealth = player0State.life >= lastValidPlayer0State.life * 4;
+                var lostAnkh = !player0State.hasAnkh.Value && lastValidPlayer0State.hasAnkh.Value;
+                var gainedAnkh = player0State.hasAnkh.Value && !lastValidPlayer0State.hasAnkh.Value;
+                var usedRope = player0State.numRopes < lastValidPlayer0State.numRopes;
+                var gainedRopes = player0State.numRopes > lastValidPlayer0State.numRopes;
+                var usedBomb = player0State.numBombs < lastValidPlayer0State.numBombs;
+                var gainedBombs = player0State.numBombs > lastValidPlayer0State.numBombs;
+                var gainedKapala = player0State.hasKapala.Value && !lastValidPlayer0State.hasKapala.Value;
+                var poisoned = player0State.isPoisoned.Value && !lastValidPlayer0State.isPoisoned.Value;
+                var cured = !player0State.isPoisoned.Value && lastValidPlayer0State.isPoisoned.Value;
+                var cursed = player0State.isCursed.Value && !lastValidPlayer0State.isCursed.Value;
+                var uncursed = !player0State.isCursed.Value && lastValidPlayer0State.isCursed.Value;
+                var spentMoney = gameState.currentScore < lastValidGameState.currentScore;
+                var gainedMoney = gameState.currentScore > lastValidGameState.currentScore;
 
-                if (worldChanged || lifeChanged || !player0State.hasAnkh.Value && lastValidPlayer0State.hasAnkh.Value || poisonedChanged || cursedChanged)
+                var videoTime = update.time - videoStartUtc;
+                
+                if (levelChanged || worldChanged)
                 {
-                    clips.Add(new TimeRange(update.time - videoStartUtc, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
+                    Console.WriteLine($"{videoTime}: Level changed ({lastValidGameState.world}-{lastValidGameState.level} -> {gameState.world}-{gameState.level})");
                 }
-                else if (levelChanged || gameState.currentScore < lastValidGameState.currentScore || kapalaChanged || ankhChanged)
+
+                if (lostHealth)
                 {
-                    clips.Add(new TimeRange(update.time - videoStartUtc, TimeSpan.Zero).Extend(beforeEventTime * 0.5, afterEventTime * 0.5));
+                    Console.WriteLine($"{videoTime}: Lost health ({lastValidPlayer0State.life} -> {player0State.life})");
+                }
+
+                if (gainedLotsHealth)
+                {
+                    Console.WriteLine($"{videoTime}: Gained lots of health ({lastValidPlayer0State.life} -> {player0State.life})");
+                }
+
+                if (lostAnkh)
+                {
+                    Console.WriteLine($"{videoTime}: Lost Ankh");
+                }
+
+                if (gainedAnkh)
+                {
+                    Console.WriteLine($"{videoTime}: Gained Ankh");
+                }
+
+                if (gainedKapala)
+                {
+                    Console.WriteLine($"{videoTime}: Gained Kapala");
+                }
+
+                if (poisoned)
+                {
+                    Console.WriteLine($"{videoTime}: Poisoned");
+                }
+
+                if (cured)
+                {
+                    Console.WriteLine($"{videoTime}: Cured");
+                }
+
+                if (cursed)
+                {
+                    Console.WriteLine($"{videoTime}: Cursed");
+                }
+
+                if (uncursed)
+                {
+                    Console.WriteLine($"{videoTime}: Uncursed");
+                }
+
+                if (spentMoney)
+                {
+                    Console.WriteLine($"{videoTime}: Spent money (${lastValidGameState.currentScore.Value - gameState.currentScore.Value})");
+                }
+
+                if (worldChanged || lostHealth || gainedLotsHealth || lostAnkh || poisoned || cursed)
+                {
+                    clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
+                }
+                else if (levelChanged || spentMoney || gainedKapala || gainedAnkh || cured || uncursed)
+                {
+                    clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime * 0.5, afterEventTime * 0.5));
                 }
 
                 lastValidGameState = gameState;

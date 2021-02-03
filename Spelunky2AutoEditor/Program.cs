@@ -358,7 +358,7 @@ namespace Spelunky2AutoEditor
                 var scoreChanged = gameState.currentScore != lastValidGameState.currentScore;
 
                 var lostHealth = player0State.life < lastValidPlayer0State.life;
-                var gainedLotsHealth = player0State.life >= lastValidPlayer0State.life * 4;
+                var gainedLotsHealth = player0State.life >= lastValidPlayer0State.life + 4;
                 var lostAnkh = !player0State.hasAnkh.Value && lastValidPlayer0State.hasAnkh.Value;
                 var gainedAnkh = player0State.hasAnkh.Value && !lastValidPlayer0State.hasAnkh.Value;
                 var usedRope = player0State.numRopes < lastValidPlayer0State.numRopes;
@@ -434,9 +434,9 @@ namespace Spelunky2AutoEditor
                 {
                     clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
                 }
-                else if (levelChanged || spentMoney || gainedKapala || gainedAnkh || cured || uncursed)
+                else if (spentMoney || gainedKapala || gainedAnkh || cured || uncursed)
                 {
-                    clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime * 0.5, afterEventTime * 0.5));
+                    clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime * 0.5, afterEventTime));
                 }
 
                 lastValidGameState = gameState;

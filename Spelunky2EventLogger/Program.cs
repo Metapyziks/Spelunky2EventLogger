@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Spelunky2EventLogger
@@ -21,6 +19,16 @@ namespace Spelunky2EventLogger
             public int KeyframePeriodMilliseconds { get; set; }
             public string OutputDirectory { get; set; }
             public string OutputFileName { get; set; }
+
+            public string OutputPath
+            {
+                get => Path.Join(OutputDirectory, OutputFileName);
+                set
+                {
+                    OutputDirectory = Path.GetDirectoryName(value);
+                    OutputFileName = Path.GetFileName(value);
+                }
+            }
         }
 
         public static AppConfiguration Configuration { get; set; }
@@ -37,12 +45,23 @@ namespace Spelunky2EventLogger
             configBuilder
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
-                    [$"{nameof(AppConfiguration.PollPeriodMilliseconds)}"] = "10",
-                    [$"{nameof(AppConfiguration.KeyframePeriodMilliseconds)}"] = "60000",
-                    [$"{nameof(AppConfiguration.OutputDirectory)}"] = "{userprofile}\\Videos\\Spelunky 2",
-                    [$"{nameof(AppConfiguration.OutputFileName)}"] = "Spelunky 2 {utcNow:yyyy.MM.dd} - {utcNow:HH.mm.ss.ff}.DVR.log",
+                    [nameof(AppConfiguration.PollPeriodMilliseconds)] = "10",
+                    [nameof(AppConfiguration.KeyframePeriodMilliseconds)] = "60000",
+                    [nameof(AppConfiguration.OutputDirectory)] = "{userprofile}\\Videos\\Spelunky 2",
+                    [nameof(AppConfiguration.OutputFileName)] = "Spelunky 2 {utcNow:yyyy.MM.dd} - {utcNow:HH.mm.ss.ff}.events.log",
                 })
-                .AddJsonFile("Config.json", true);
+                .AddJsonFile("Config.json", true)
+                .AddCommandLine(args, new Dictionary<string, string>
+                {
+                    ["--poll-period"] = nameof(AppConfiguration.PollPeriodMilliseconds),
+                    ["--keyframe-period"] = nameof(AppConfiguration.KeyframePeriodMilliseconds),
+
+                    ["-o"] = nameof(AppConfiguration.OutputPath),
+                    ["--output"] = nameof(AppConfiguration.OutputPath),
+
+                    ["--output-dir"] = nameof(AppConfiguration.OutputDirectory),
+                    ["--output-filename"] = nameof(AppConfiguration.OutputFileName),
+                });
 
             Configuration = configBuilder.Build().Get<AppConfiguration>();
 

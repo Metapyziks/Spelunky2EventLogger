@@ -2,7 +2,7 @@
   "profiles": {
     "Spelunky2AutoEditor": {
       "commandName": "Project",
-      "commandLineArgs": "--input-events \"daily-2021-02-01.log\" --input-video \"Spelunky 2 2021.02.01 - 21.12.48.02.mp4\" --output \"D:\\HardDiskShare\\UserFolder\\Videos\\Spelunky 2\\clippy.txt\"",
+      "commandLineArgs": "--input-events \"daily-2021-02-05.log\" --input-video \"Spelunky 2 2021.02.05 - 20.22.44.02.mp4\" --output \"D:\\HardDiskShare\\UserFolder\\Videos\\Spelunky 2\\daily-2021-02-05.mp4\"",
       "workingDirectory": "D:\\HardDiskShare\\UserFolder\\Videos\\Spelunky 2"
     }
   }

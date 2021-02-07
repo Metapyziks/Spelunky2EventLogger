@@ -1,201 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace Spelunky2AutoEditor
 {
-    public enum UpdateType
-    {
-        Keyframe,
-        Delta
-    }
-
-    public struct StateUpdate
-    {
-        public UpdateType type;
-
-        [JsonIgnore]
-        public DateTime time;
-
-        [JsonProperty("time")]
-        private long TimeInternal
-        {
-            get => (long) (time - DateTime.UnixEpoch).TotalMilliseconds;
-            set => time = DateTime.UnixEpoch.AddMilliseconds(value);
-        }
-
-        public GameState game;
-        public PlayerState player0;
-    }
-
-    public struct GameState
-    {
-        public const int MaxPlayers = 4;
-
-        public uint? igt;
-        public bool? loading;
-        public bool? ingame;
-        public bool? playing;
-        public bool? pause;
-        public byte? world;
-        public byte? level;
-        public byte? door;
-        public ulong? currentScore;
-        public bool? udjatEyeAvailable;
-
-        public void Update(in GameState delta)
-        {
-            igt = delta.igt ?? igt;
-            loading = delta.loading ?? loading;
-            ingame = delta.ingame ?? ingame;
-            playing = delta.playing ?? playing;
-            pause = delta.pause ?? pause;
-            world = delta.world ?? world;
-            level = delta.level ?? level;
-            door = delta.door ?? door;
-            currentScore = delta.currentScore ?? currentScore;
-            udjatEyeAvailable = delta.udjatEyeAvailable ?? udjatEyeAvailable;
-        }
-    }
-
-    public struct PlayerState
-    {
-        public byte? life;
-        public byte? numBombs;
-        public byte? numRopes;
-        public bool? hasAnkh;
-        public bool? hasKapala;
-        public bool? isPoisoned;
-        public bool? isCursed;
-
-        public void Update(in PlayerState delta)
-        {
-            life = delta.life ?? life;
-            numBombs = delta.numBombs ?? numBombs;
-            numRopes = delta.numRopes ?? numRopes;
-            hasAnkh = delta.hasAnkh ?? hasAnkh;
-            hasKapala = delta.hasKapala ?? hasKapala;
-            isPoisoned = delta.isPoisoned ?? isPoisoned;
-            isCursed = delta.isCursed ?? isCursed;
-        }
-    }
-    
-    public struct TimeRange : IEquatable<TimeRange>
-    {
-        public static TimeRange Union(TimeRange a, TimeRange b)
-        {
-            var start = Math.Min(a.Start.Ticks, b.Start.Ticks);
-            var end = Math.Max(a.End.Ticks, b.End.Ticks);
-
-            return new TimeRange(new TimeSpan(start), new TimeSpan(end - start));
-        }
-
-        public static TimeRange Intersection(TimeRange a, TimeRange b)
-        {
-            if (!a.Intersects(b))
-            {
-                return default;
-            }
-
-            var start = Math.Max(a.Start.Ticks, b.Start.Ticks);
-            var end = Math.Min(a.End.Ticks, b.End.Ticks);
-
-            return new TimeRange(new TimeSpan(start), new TimeSpan(end - start));
-        }
-
-        public static void TruncateOutsideRange(List<TimeRange> clips, TimeRange range)
-        {
-            for (var i = clips.Count - 1; i >= 0; --i)
-            {
-                var clip = clips[i];
-
-                if (!clip.Intersects(range))
-                {
-                    clips.RemoveAt(i);
-                    continue;
-                }
-
-                if (clip.Start < range.Start || clip.End > range.End)
-                {
-                    clips[i] = Intersection(clip, range);
-                }
-            }
-        }
-
-        public static void RemoveIntersections(List<TimeRange> clips, TimeSpan margin = default)
-        {
-            if (clips.Count < 2) return;
-
-            var next = clips[^1];
-
-            for (var i = clips.Count - 2; i >= 0; --i)
-            {
-                var clip = clips[i];
-
-                if (clip.Extend(TimeSpan.Zero, margin).Intersects(next))
-                {
-                    clips[i] = next = Union(clip, next);
-                    clips.RemoveAt(i + 1);
-                }
-                else
-                {
-                    next = clip;
-                }
-            }
-        }
-
-        public readonly TimeSpan Start;
-        public readonly TimeSpan Duration;
-
-        public TimeSpan End => Start + Duration;
-
-        public TimeRange(TimeSpan start, TimeSpan duration)
-        {
-            Start = start;
-            Duration = duration;
-        }
-
-        public TimeRange Extend(TimeSpan margin)
-        {
-            return Extend(margin, margin);
-        }
-
-        public TimeRange Extend(TimeSpan beforeStart, TimeSpan afterEnd)
-        {
-            return new TimeRange(Start - beforeStart, Duration + beforeStart + afterEnd);
-        }
-
-        public bool Intersects(TimeRange other)
-        {
-            return Start < other.End && End > other.Start;
-        }
-
-        public bool Equals(TimeRange other)
-        {
-            return Start.Equals(other.Start) && Duration.Equals(other.Duration);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is TimeRange other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (Start.GetHashCode() * 397) ^ Duration.GetHashCode();
-            }
-        }
-    }
-
     class Program
     {
+        public class AppConfiguration
+        {
+            public string InputVideoPath { get; set; }
+            public string InputEventsPath { get; set; }
+            public string OutputPath { get; set; }
+            public DateTime? VideoStartUtc { get; set; }
+            public string FfmpegPath { get; set; }
+
+            public DateTime? VideoStartLocal
+            {
+                get => VideoStartUtc?.ToLocalTime();
+                set => VideoStartUtc = value?.ToUniversalTime();
+            }
+
+            public TimeSpan? VideoDuration { get; set; }
+        }
+
         private const string DateTimeFormat = "YYYY.MM.DD - hh.mm.ss.ff";
 
         private static readonly Regex DateTimeRegex = new Regex(@"(?:^|[^0-9])(?<year>[0-9]{2}(?:[0-9]{2})?)\.(?<month>[0-9]{1,2})\.(?<day>[0-9]{1,2})\s*-\s*(?<hour>[0-9]{1,2})\.(?<minute>[0-9]{1,2})\.(?<second>[0-9]{1,2}(?:\.[0-9]+)?)(?:$|[^0-9])");
@@ -237,89 +72,56 @@ namespace Spelunky2AutoEditor
             return true;
         }
 
+        public static AppConfiguration Configuration { get; set; }
+
         static int Main(string[] args)
         {
-            string inputVideoPath = null;
-            string inputEventsPath = null;
-            string outputPath = null;
-            DateTime videoStartUtc = default;
-            TimeSpan videoDuration = default;
+            var configBuilder = new ConfigurationBuilder();
 
-            for (var i = 0; i < args.Length - 1; ++i)
-            {
-                var option = args[i];
-
-                switch (option)
+            configBuilder
+                .AddInMemoryCollection(new Dictionary<string, string>
                 {
-                    case "--input-video":
-                        inputVideoPath = args[i + 1];
-                        break;
+                    [nameof(AppConfiguration.FfmpegPath)] = "ffmpeg.exe"
+                })
+                .AddJsonFile("Config.json", true)
+                .AddCommandLine(args, new Dictionary<string, string>
+                {
+                    ["--input-video"] = nameof(AppConfiguration.InputVideoPath),
+                    ["--input-events"] = nameof(AppConfiguration.InputEventsPath),
 
-                    case "--input-events":
-                        inputEventsPath = args[i + 1];
-                        break;
+                    ["--output"] = nameof(AppConfiguration.OutputPath),
 
-                    case "--output":
-                        outputPath = args[i + 1];
-                        break;
+                    ["--video-start-utc"] = nameof(AppConfiguration.VideoStartUtc),
+                    ["--video-start-local"] = nameof(AppConfiguration.VideoStartLocal),
 
-                    case "--video-start":
-                        if (!TryParseDateTime(args[i + 1], out videoStartUtc))
-                        {
-                            Console.WriteLine($"Invalid date format for --video-start, expected \"{DateTimeFormat}\".");
-                        }
-                        else
-                        {
-                            videoStartUtc = videoStartUtc.ToUniversalTime();
-                        }
-                        break;
+                    ["--video-duration"] = nameof(AppConfiguration.VideoDuration)
+                });
 
-                    case "--video-start-utc":
-                        if (!TryParseDateTime(args[i + 1], out videoStartUtc))
-                        {
-                            Console.WriteLine($"Invalid date format for --video-start-utc, expected \"{DateTimeFormat}\".");
-                        }
-                        break;
+            Configuration = configBuilder.Build().Get<AppConfiguration>();
 
-                    case "--video-duration":
-                        if (!TimeSpan.TryParse(args[i + 1], out videoDuration))
-                        {
-                            Console.WriteLine($"Invalid time span format for --video-duration.");
-                        }
-                        break;
-                }
+            if (Configuration.InputEventsPath == null)
+            {
+                Console.Error.WriteLine("Expected event file path. Try using --input-events <path>");
+                return 1;
             }
 
-            if (inputEventsPath == null)
-            {
-                Console.WriteLine("Expected event file path. Try using --input-events <path>");
-                return 0;
-            }
+            var videoStartUtc = Configuration.VideoStartUtc ?? default;
 
-            if (videoStartUtc == default && inputVideoPath != null
-                && !TryParseDateTime(Path.GetFileNameWithoutExtension(inputVideoPath), out videoStartUtc))
+            if (!Configuration.VideoStartUtc.HasValue && Configuration.InputVideoPath != null
+                && !TryParseDateTime(Path.GetFileNameWithoutExtension(Configuration.InputVideoPath), out videoStartUtc))
             {
-                Console.WriteLine($"Unable to determine video start date/time.{Environment.NewLine}" +
+                Console.Error.WriteLine($"Unable to determine video start date/time.{Environment.NewLine}" +
                     $"Try using --video-start-utc, or a video with a date in the filename formatted like \"{DateTimeFormat}\".");
                 return 1;
             }
 
-            if (videoDuration == default && inputVideoPath != null)
-            {
-                try
-                {
-                    videoDuration = GetVideoLength(inputVideoPath);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    return 1;
-                }
-            }
+            var videoDuration = Configuration.VideoDuration ?? default;
 
-            if (videoDuration == default)
+            if (!Configuration.VideoStartUtc.HasValue && Configuration.InputVideoPath != null
+                && !TryGetVideoDuration(Configuration.InputVideoPath, out videoDuration))
             {
-                Console.WriteLine("Unable to determine video duration.");
+                Console.Error.WriteLine($"Unable to determine video duration.{Environment.NewLine}" +
+                    $"Try using --video-duration, or --input-video <path> with a valid video file.");
                 return 1;
             }
 
@@ -331,11 +133,11 @@ namespace Spelunky2AutoEditor
             var lastValidPlayer0State = new PlayerState();
 
             var beforeEventTime = TimeSpan.FromSeconds(3d);
-            var afterEventTime = TimeSpan.FromSeconds(1d);
+            var afterEventTime = TimeSpan.FromSeconds(2d);
 
             var first = true;
 
-            foreach (var update in ReadStateUpdates(inputEventsPath))
+            foreach (var update in ReadStateUpdates(Configuration.InputEventsPath))
             {
                 gameState.Update(update.game);
                 player0State.Update(update.player0);
@@ -377,66 +179,66 @@ namespace Spelunky2AutoEditor
                 
                 if (levelChanged || worldChanged)
                 {
-                    Console.WriteLine($"{videoTime}: Level changed ({lastValidGameState.world}-{lastValidGameState.level} -> {gameState.world}-{gameState.level})");
+                    Console.Error.WriteLine($"{videoTime}: Level changed ({lastValidGameState.world}-{lastValidGameState.level} -> {gameState.world}-{gameState.level})");
                 }
 
                 if (lostHealth)
                 {
-                    Console.WriteLine($"{videoTime}: Lost health ({lastValidPlayer0State.life} -> {player0State.life})");
+                    Console.Error.WriteLine($"{videoTime}: Lost health ({lastValidPlayer0State.life} -> {player0State.life})");
                 }
 
                 if (gainedLotsHealth)
                 {
-                    Console.WriteLine($"{videoTime}: Gained lots of health ({lastValidPlayer0State.life} -> {player0State.life})");
+                    Console.Error.WriteLine($"{videoTime}: Gained lots of health ({lastValidPlayer0State.life} -> {player0State.life})");
                 }
 
                 if (lostAnkh)
                 {
-                    Console.WriteLine($"{videoTime}: Lost Ankh");
+                    Console.Error.WriteLine($"{videoTime}: Lost Ankh");
                 }
 
                 if (gainedAnkh)
                 {
-                    Console.WriteLine($"{videoTime}: Gained Ankh");
+                    Console.Error.WriteLine($"{videoTime}: Gained Ankh");
                 }
 
                 if (gainedKapala)
                 {
-                    Console.WriteLine($"{videoTime}: Gained Kapala");
+                    Console.Error.WriteLine($"{videoTime}: Gained Kapala");
                 }
 
                 if (poisoned)
                 {
-                    Console.WriteLine($"{videoTime}: Poisoned");
+                    Console.Error.WriteLine($"{videoTime}: Poisoned");
                 }
 
                 if (cured)
                 {
-                    Console.WriteLine($"{videoTime}: Cured");
+                    Console.Error.WriteLine($"{videoTime}: Cured");
                 }
 
                 if (cursed)
                 {
-                    Console.WriteLine($"{videoTime}: Cursed");
+                    Console.Error.WriteLine($"{videoTime}: Cursed");
                 }
 
                 if (uncursed)
                 {
-                    Console.WriteLine($"{videoTime}: Uncursed");
+                    Console.Error.WriteLine($"{videoTime}: Uncursed");
                 }
 
                 if (spentMoney)
                 {
-                    Console.WriteLine($"{videoTime}: Spent money (${lastValidGameState.currentScore.Value - gameState.currentScore.Value})");
+                    Console.Error.WriteLine($"{videoTime}: Spent money (${lastValidGameState.currentScore.Value - gameState.currentScore.Value})");
                 }
 
-                if (worldChanged || lostHealth || gainedLotsHealth || lostAnkh || poisoned || cursed)
+                if (lostHealth || gainedLotsHealth || lostAnkh || poisoned || cursed || gainedKapala || gainedAnkh)
                 {
                     clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
                 }
-                else if (spentMoney || gainedKapala || gainedAnkh || cured || uncursed)
+                else if (spentMoney || cured || uncursed)
                 {
-                    clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime * 0.5, afterEventTime));
+                    clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
                 }
 
                 lastValidGameState = gameState;
@@ -444,9 +246,91 @@ namespace Spelunky2AutoEditor
             }
 
             clips.Sort((a, b) => a.Start.CompareTo(b.Start));
-            TimeRange.RemoveIntersections(clips, TimeSpan.FromSeconds(3d));
+            TimeRange.RemoveIntersections(clips, TimeSpan.FromSeconds(5d));
             TimeRange.TruncateOutsideRange(clips, new TimeRange(TimeSpan.Zero, videoDuration));
 
+            Console.Error.WriteLine($"Total duration: {clips.Aggregate(TimeSpan.Zero, (s, x) => s + x.Duration)}");
+
+            if (Configuration.OutputPath == null)
+            {
+                Console.WriteLine(GetComplexFilterString(clips));
+                return 0;
+            }
+
+            var ext = Path.GetExtension(Configuration.OutputPath)?.ToLower() ?? ".txt";
+
+            if (ext == ".txt")
+            {
+                File.WriteAllText(Configuration.OutputPath, GetComplexFilterString(clips));
+                return 0;
+            }
+
+            if (ext == Path.GetExtension(Configuration.InputVideoPath)?.ToLower())
+            {
+                return EditVideo(Configuration.InputVideoPath, clips, Configuration.OutputPath) ? 0 : 1;
+            }
+
+            Console.Error.WriteLine($"Unexpected output extension \"{ext}\". Please use either \".txt\" or the same extension as the input video.");
+            return 1;
+        }
+
+        private static readonly Regex DurationRegex = new Regex(@"^\s*Duration: (?<duration>[0-9:.]+),", RegexOptions.Multiline);
+
+        static void Ffmpeg(params string[] args)
+        {
+            var processStart = new ProcessStartInfo(Configuration.FfmpegPath)
+            {
+                UseShellExecute = false,
+                ErrorDialog = false,
+                CreateNoWindow = false
+            };
+
+            foreach (var arg in args)
+            {
+                processStart.ArgumentList.Add(arg);
+            }
+
+            using var process = Process.Start(processStart);
+            process.WaitForExit();
+
+            if (process.ExitCode != 0)
+            {
+                throw new Exception($"Error running ffmpeg.exe: exited with code {process.ExitCode}.");
+            }
+        }
+
+        static string FfmpegInfo(string path)
+        {
+            var processStart = new ProcessStartInfo(Configuration.FfmpegPath)
+            {
+                ArgumentList = { "-i", path },
+                UseShellExecute = false,
+                ErrorDialog = false,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(processStart);
+            return process.StandardError.ReadToEnd();
+        }
+
+        static bool TryGetVideoDuration(string path, out TimeSpan duration)
+        {
+            var result = FfmpegInfo(path);
+            var match = DurationRegex.Match(result);
+
+            if (match.Success)
+            {
+                duration = TimeSpan.Parse(match.Groups["duration"].Value);
+                return true;
+            }
+
+            duration = default;
+            return false;
+        }
+
+        static string GetComplexFilterString(IReadOnlyList<TimeRange> clips)
+        {
             var writer = new StringWriter();
 
             for (var i = 0; i < clips.Count; ++i)
@@ -469,47 +353,45 @@ namespace Spelunky2AutoEditor
 
             writer.WriteLine($"concat=n={clips.Count}:v=1:a=1[outv][outa]");
 
-            if (outputPath != null)
-            {
-                File.WriteAllText(outputPath, writer.ToString());
-            }
-            else
-            {
-                Console.WriteLine(writer);
-            }
-
-            Console.WriteLine($"Total duration: {clips.Aggregate(TimeSpan.Zero, (s, x) => s + x.Duration)}");
-
-            return 0;
+            return writer.ToString();
         }
 
-        private static readonly Regex DurationRegex = new Regex(@"^\s*Duration: (?<duration>[0-9:.]+),", RegexOptions.Multiline);
-
-        static TimeSpan GetVideoLength(string path)
+        static bool EditVideo(string inputPath, IReadOnlyList<TimeRange> clips, string outputPath)
         {
-            var processStart = new ProcessStartInfo("ffmpeg.exe")
+            Console.Error.WriteLine($"Concatenating {clips.Count} clips...");
+            
+            var args = new List<string>();
+
+            var filterWriter = new StringWriter();
+
+            var index = 0;
+            foreach (var clip in clips)
             {
-                ArgumentList =
+                args.AddRange(new[]
                 {
-                    "-i", path
-                },
-                UseShellExecute = false,
-                ErrorDialog = false,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
+                    "-ss", clip.Start.TotalSeconds.ToString("F3"),
+                    "-t", clip.Duration.TotalSeconds.ToString("F3"),
+                    "-i", inputPath
+                });
 
-            using var process = Process.Start(processStart);
-            var result = process.StandardError.ReadToEnd();
+                filterWriter.Write($"[{index}:v][{index}:a]");
 
-            var match = DurationRegex.Match(result);
-
-            if (match.Success)
-            {
-                return TimeSpan.Parse(match.Groups["duration"].Value);
+                ++index;
             }
 
-            throw new Exception("Unable to determine duration of video file.");
+            filterWriter.Write($"concat=n={clips.Count}:v=1:a=1");
+
+            args.AddRange(new []
+            {
+                "-filter_complex", filterWriter.ToString(),
+                "-y", "-stats",
+                "-loglevel", "quiet",
+                outputPath
+            });
+
+            Ffmpeg(args.ToArray());
+
+            return true;
         }
 
         static IEnumerable<StateUpdate> ReadStateUpdates(string path)

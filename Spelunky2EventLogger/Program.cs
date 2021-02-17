@@ -4,10 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
 
 namespace Spelunky2EventLogger
 {
@@ -32,11 +33,6 @@ namespace Spelunky2EventLogger
         }
 
         public static AppConfiguration Configuration { get; set; }
-
-        private static long GetUnixTimeStamp(DateTime time)
-        {
-            return (long) Math.Round((time - DateTime.UnixEpoch).TotalMilliseconds);
-        }
 
         private static async Task<int> Main(string[] args)
         {
@@ -128,7 +124,18 @@ namespace Spelunky2EventLogger
             Player playerWritten = default;
             Player playerPrev = default;
 
+            GameState gameState = new GameState();
+            PlayerState player0State = new PlayerState();
+
             var changedSinceKeyframe = true;
+            var jsonOptions = new JsonSerializerOptions
+            {
+                IgnoreNullValues = true,
+                Converters =
+                {
+                    new JsonStringEnumConverter()
+                }
+            };
 
             while (scanner.ReadStructure<AutoSplitter>(autoSplitterAddress, out var autoSplitter) && scanner.ReadStructure<Player>(playerAddress, out var player))
             {
@@ -141,13 +148,16 @@ namespace Spelunky2EventLogger
 
                     changedSinceKeyframe = false;
 
-                    writer.Write(new JObject
+                    WatchedProperties<AutoSplitter, GameState>.CopyAllFields(in autoSplitter, gameState);
+                    WatchedProperties<Player, PlayerState>.CopyAllFields(in player, player0State);
+
+                    writer.Write(JsonSerializer.Serialize(new StateUpdate
                     {
-                        ["type"] = "Keyframe",
-                        ["time"] = GetUnixTimeStamp(now),
-                        ["game"] = GetFields(in autoSplitter),
-                        ["player0"] = GetFields(in player)
-                    });
+                        type = UpdateType.Keyframe,
+                        time = now,
+                        game = gameState,
+                        player0 = player0State
+                    }, jsonOptions));
                     writer.WriteLine(",");
                     await writer.FlushAsync();
 
@@ -156,33 +166,33 @@ namespace Spelunky2EventLogger
                 }
                 else if (autoSplitterPrev.uniq != autoSplitter.uniq)
                 {
-                    var stable = !HaveFieldsChanged(autoSplitterPrev, autoSplitter)
-                        && !HaveFieldsChanged(playerPrev, player);
+                    var stable = !WatchedProperties<AutoSplitter, GameState>.HaveFieldsChanged(autoSplitterPrev, autoSplitter)
+                        && !WatchedProperties<Player, PlayerState>.HaveFieldsChanged(playerPrev, player);
 
-                    var changedSinceWrite = HaveFieldsChanged(autoSplitterWritten, autoSplitter)
-                        || HaveFieldsChanged(playerWritten, player);
-
-                    if (stable && changedSinceWrite)
+                    if (stable)
                     {
-                        changedSinceKeyframe = true;
+                        var autoSplitterChanged = WatchedProperties<AutoSplitter, GameState>.CopyChangedFields(
+                            autoSplitterWritten, autoSplitter, gameState);
 
-                        var delta = new JObject
+                        var playerChanged = WatchedProperties<Player, PlayerState>.CopyChangedFields(
+                            playerWritten, player, player0State);
+
+                        if (autoSplitterChanged + playerChanged > 0)
                         {
-                            ["type"] = "Delta",
-                            ["time"] = GetUnixTimeStamp(now)
-                        };
+                            changedSinceKeyframe = true;
 
-                        var gameChanged = GetChangedFields(autoSplitterWritten, autoSplitterPrev);
-                        var player0Changed = GetChangedFields(playerWritten, playerPrev);
+                            writer.Write(JsonSerializer.Serialize(new StateUpdate
+                            {
+                                type = UpdateType.Delta,
+                                time = now,
+                                game = gameState,
+                                player0 = playerChanged > 0 ? player0State : null
+                            }, jsonOptions));
+                            writer.WriteLine(",");
 
-                        if (gameChanged != null) delta.Add("game", gameChanged);
-                        if (player0Changed != null) delta.Add("player0", player0Changed);
-
-                        writer.Write(delta);
-                        writer.WriteLine(",");
-
-                        autoSplitterWritten = autoSplitter;
-                        playerWritten = player;
+                            autoSplitterWritten = autoSplitter;
+                            playerWritten = player;
+                        }
                     }
                 }
 

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+using Spelunky2EventLogger;
 
 namespace Spelunky2AutoEditor
 {
@@ -22,6 +22,8 @@ namespace Spelunky2AutoEditor
             public DateTime? VideoStartUtc { get; set; }
             public string FfmpegPath { get; set; }
 
+            public string EditorConfigPath { get; set; }
+
             public DateTime? VideoStartLocal
             {
                 get => VideoStartUtc?.ToLocalTime();
@@ -29,6 +31,87 @@ namespace Spelunky2AutoEditor
             }
 
             public TimeSpan? VideoDuration { get; set; }
+        }
+
+        public class EditorConfiguration
+        {
+            public enum Filter
+            {
+                Default,
+                Increase,
+                Decrease
+            }
+
+            public enum ScoreType
+            {
+                Constant,
+                Linear
+            }
+
+            public static readonly EditorConfiguration UsedUtility = new EditorConfiguration
+            {
+                EventCategories =
+                {
+                    // Used bombs or ropes
+                    new EditorConfiguration.EventCategory
+                    {
+                        Events = { PlayerState.Fields.numBombs, PlayerState.Fields.numRopes },
+                        Filter = EditorConfiguration.Filter.Decrease,
+                        ScoreType = EditorConfiguration.ScoreType.Linear
+                    },
+                }
+            };
+
+            public static readonly EditorConfiguration Lowlights = new EditorConfiguration
+            {
+                EventCategories =
+                {
+                    // Lost health
+                    new EditorConfiguration.EventCategory
+                    {
+                        Events = { PlayerState.Fields.life },
+                        Filter = EditorConfiguration.Filter.Decrease,
+                        ScoreType = EditorConfiguration.ScoreType.Linear
+                    },
+                    // Lost ankh or died
+                    new EditorConfiguration.EventCategory
+                    {
+                        Events = { PlayerState.Fields.hasAnkh, PlayerState.Fields.life },
+                        Absolute = true,
+                        ExactValue = 0,
+                        Score = 100d
+                    },
+                    // Poisoned or cursed
+                    new EditorConfiguration.EventCategory
+                    {
+                        Events = { PlayerState.Fields.isPoisoned, PlayerState.Fields.isCursed },
+                        Absolute = true,
+                        ExactValue = 1,
+                        Score = 50d
+                    }
+                }
+            };
+
+            public class EventCategory
+            {
+                public List<EventField> Events { get; } = new List<EventField>();
+                public Filter Filter { get; set; }
+                public bool Absolute { get; set; }
+                public ScoreType ScoreType { get; set; }
+                public int Minimum { get; set; }
+                public int Maximum { get; set; } = int.MaxValue;
+                public int ExactValue
+                {
+                    get => Minimum;
+                    set => Minimum = Maximum = value;
+                }
+                public double Score { get; set; } = 1d;
+                public double BeforeTime { get; set; } = 3d;
+                public double AfterTime { get; set; } = 2d;
+            }
+
+            public List<EventCategory> EventCategories { get; } = new List<EventCategory>();
+            public double MaxMergeTime { get; set; } = 3d;
         }
 
         private const string DateTimeFormat = "YYYY.MM.DD - hh.mm.ss.ff";
@@ -73,9 +156,19 @@ namespace Spelunky2AutoEditor
         }
 
         public static AppConfiguration Configuration { get; set; }
+        public static JsonSerializerOptions JsonSerializerOptions { get; set; }
 
         static int Main(string[] args)
         {
+            JsonSerializerOptions = new JsonSerializerOptions
+            {
+                IgnoreNullValues = true,
+                Converters =
+                {
+                    new JsonStringEnumConverter()
+                }
+            };
+
             var configBuilder = new ConfigurationBuilder();
 
             configBuilder
@@ -125,131 +218,36 @@ namespace Spelunky2AutoEditor
                 return 1;
             }
 
-            var clips = new List<TimeRange>();
-            var gameState = new GameState();
-            var player0State = new PlayerState();
+            EditorConfiguration editorConfig = EditorConfiguration.Lowlights;
 
-            var lastValidGameState = new GameState();
-            var lastValidPlayer0State = new PlayerState();
-
-            var beforeEventTime = TimeSpan.FromSeconds(3d);
-            var afterEventTime = TimeSpan.FromSeconds(2d);
-
-            var first = true;
-
-            foreach (var update in ReadStateUpdates(Configuration.InputEventsPath))
+            if (Configuration.EditorConfigPath != null)
             {
-                gameState.Update(update.game);
-                player0State.Update(update.player0);
+                editorConfig = JsonSerializer.Deserialize<EditorConfiguration>(File.ReadAllText(Configuration.EditorConfigPath), JsonSerializerOptions);
+            }
 
-                if (first)
+            var clips = new List<TimeRange>();
+
+            foreach (var evnt in GetEvents(ReadStateUpdates(Configuration.InputEventsPath)))
+            {
+                var score = GetScore(evnt, editorConfig, out var beforeTime, out var afterTime);
+                if (score > 0d)
                 {
-                    first = false;
-
-                    lastValidGameState.Update(gameState);
-                    lastValidPlayer0State.Update(player0State);
+                    clips.Add(new TimeRange(evnt.Time - videoStartUtc, TimeSpan.Zero)
+                        .Extend(TimeSpan.FromSeconds(beforeTime), TimeSpan.FromSeconds(afterTime)));
                 }
-
-                var valid = gameState.ingame == true && gameState.playing == true && gameState.pause == false && gameState.loading == false;
-
-                if (!valid) continue;
-
-                var levelChanged = gameState.level != lastValidGameState.level;
-                var worldChanged = gameState.world != lastValidGameState.world;
-
-                var scoreChanged = gameState.currentScore != lastValidGameState.currentScore;
-
-                var lostHealth = player0State.life < lastValidPlayer0State.life;
-                var gainedLotsHealth = player0State.life >= lastValidPlayer0State.life + 4;
-                var lostAnkh = !player0State.hasAnkh.Value && lastValidPlayer0State.hasAnkh.Value;
-                var gainedAnkh = player0State.hasAnkh.Value && !lastValidPlayer0State.hasAnkh.Value;
-                var usedRope = player0State.numRopes < lastValidPlayer0State.numRopes;
-                var gainedRopes = player0State.numRopes > lastValidPlayer0State.numRopes;
-                var usedBomb = player0State.numBombs < lastValidPlayer0State.numBombs;
-                var gainedBombs = player0State.numBombs > lastValidPlayer0State.numBombs;
-                var gainedKapala = player0State.hasKapala.Value && !lastValidPlayer0State.hasKapala.Value;
-                var poisoned = player0State.isPoisoned.Value && !lastValidPlayer0State.isPoisoned.Value;
-                var cured = !player0State.isPoisoned.Value && lastValidPlayer0State.isPoisoned.Value;
-                var cursed = player0State.isCursed.Value && !lastValidPlayer0State.isCursed.Value;
-                var uncursed = !player0State.isCursed.Value && lastValidPlayer0State.isCursed.Value;
-                var spentMoney = gameState.currentScore < lastValidGameState.currentScore;
-                var gainedMoney = gameState.currentScore > lastValidGameState.currentScore;
-
-                var videoTime = update.time - videoStartUtc;
-                
-                if (levelChanged || worldChanged)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Level changed ({lastValidGameState.world}-{lastValidGameState.level} -> {gameState.world}-{gameState.level})");
-                }
-
-                if (lostHealth)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Lost health ({lastValidPlayer0State.life} -> {player0State.life})");
-                }
-
-                if (gainedLotsHealth)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Gained lots of health ({lastValidPlayer0State.life} -> {player0State.life})");
-                }
-
-                if (lostAnkh)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Lost Ankh");
-                }
-
-                if (gainedAnkh)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Gained Ankh");
-                }
-
-                if (gainedKapala)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Gained Kapala");
-                }
-
-                if (poisoned)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Poisoned");
-                }
-
-                if (cured)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Cured");
-                }
-
-                if (cursed)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Cursed");
-                }
-
-                if (uncursed)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Uncursed");
-                }
-
-                if (spentMoney)
-                {
-                    Console.Error.WriteLine($"{videoTime}: Spent money (${lastValidGameState.currentScore.Value - gameState.currentScore.Value})");
-                }
-
-                if (lostHealth || gainedLotsHealth || lostAnkh || poisoned || cursed || gainedKapala || gainedAnkh)
-                {
-                    clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
-                }
-                else if (spentMoney || cured || uncursed)
-                {
-                    clips.Add(new TimeRange(videoTime, TimeSpan.Zero).Extend(beforeEventTime, afterEventTime));
-                }
-
-                lastValidGameState = gameState;
-                lastValidPlayer0State = player0State;
             }
 
             clips.Sort((a, b) => a.Start.CompareTo(b.Start));
-            TimeRange.RemoveIntersections(clips, TimeSpan.FromSeconds(5d));
+            TimeRange.RemoveIntersections(clips, TimeSpan.FromSeconds(editorConfig.MaxMergeTime));
             TimeRange.TruncateOutsideRange(clips, new TimeRange(TimeSpan.Zero, videoDuration));
 
             Console.Error.WriteLine($"Total duration: {clips.Aggregate(TimeSpan.Zero, (s, x) => s + x.Duration)}");
+
+            if (clips.Count == 0)
+            {
+                Console.Error.WriteLine("No clips found.");
+                return 1;
+            }
 
             if (Configuration.OutputPath == null)
             {
@@ -422,10 +420,167 @@ namespace Spelunky2AutoEditor
                 if (objectEndCount > 0 && objectDepth == 0)
                 {
                     var jsonString = jsonStringBuilder.ToString().TrimEnd(' ', '\r', '\n', ',');
-                    yield return JsonConvert.DeserializeObject<StateUpdate>(jsonString);
+                    yield return JsonSerializer.Deserialize<StateUpdate>(jsonString, JsonSerializerOptions);
                     jsonStringBuilder.Remove(0, jsonStringBuilder.Length);
                 }
             }
+        }
+
+        static IEnumerable<Event> GetEvents(IEnumerable<StateUpdate> updates)
+        {
+            var gameState = new GameState();
+            var player0State = new PlayerState();
+
+            var lastValidGameState = new GameState();
+            var lastValidPlayer0State = new PlayerState();
+
+            var first = true;
+
+            foreach (var update in updates)
+            {
+                gameState.Update(update.game);
+                player0State.Update(update.player0);
+
+                if (first)
+                {
+                    first = false;
+
+                    if (update.type != UpdateType.Keyframe)
+                    {
+                        throw new Exception("Expected first update to be a keyframe.");
+                    }
+
+                    lastValidGameState.Update(gameState);
+                    lastValidPlayer0State.Update(player0State);
+                }
+
+                var valid = gameState.ingame == true && gameState.playing == true && gameState.pause == false && gameState.loading == false;
+
+                if (!valid) continue;
+
+                // GameState
+
+                if (lastValidGameState.world.Value != gameState.world.Value)
+                {
+                    yield return new Event(GameState.Fields.world, update.time,
+                        lastValidGameState.world.Value, gameState.world.Value);
+                }
+
+                if (lastValidGameState.level.Value != gameState.level.Value)
+                {
+                    yield return new Event(GameState.Fields.level, update.time,
+                        lastValidGameState.level.Value, gameState.level.Value);
+                }
+
+                if (lastValidGameState.door.Value != gameState.door.Value)
+                {
+                    yield return new Event(GameState.Fields.door, update.time,
+                        lastValidGameState.door.Value, gameState.door.Value);
+                }
+
+                if (lastValidGameState.currentScore.Value != gameState.currentScore.Value)
+                {
+                    yield return new Event(GameState.Fields.currentScore, update.time,
+                        lastValidGameState.currentScore.Value, gameState.currentScore.Value);
+                }
+
+                // PlayerState
+
+                if (lastValidPlayer0State.life.Value != player0State.life.Value)
+                {
+                    yield return new Event(PlayerState.Fields.life, 0, update.time,
+                        lastValidPlayer0State.life.Value, player0State.life.Value);
+                }
+
+                if (lastValidPlayer0State.numBombs.Value != player0State.numBombs.Value)
+                {
+                    yield return new Event(PlayerState.Fields.numBombs, 0, update.time,
+                        lastValidPlayer0State.numBombs.Value, player0State.numBombs.Value);
+                }
+
+                if (lastValidPlayer0State.numRopes.Value != player0State.numRopes.Value)
+                {
+                    yield return new Event(PlayerState.Fields.numRopes, 0, update.time,
+                        lastValidPlayer0State.numRopes.Value, player0State.numRopes.Value);
+                }
+
+                if (lastValidPlayer0State.hasAnkh.Value != player0State.hasAnkh.Value)
+                {
+                    yield return new Event(PlayerState.Fields.hasAnkh, 0, update.time,
+                        lastValidPlayer0State.hasAnkh.Value, player0State.hasAnkh.Value);
+                }
+
+                if (lastValidPlayer0State.hasKapala.Value != player0State.hasKapala.Value)
+                {
+                    yield return new Event(PlayerState.Fields.hasKapala, 0, update.time,
+                        lastValidPlayer0State.hasKapala.Value, player0State.hasKapala.Value);
+                }
+
+                if (lastValidPlayer0State.isPoisoned.Value != player0State.isPoisoned.Value)
+                {
+                    yield return new Event(PlayerState.Fields.isPoisoned, 0, update.time,
+                        lastValidPlayer0State.isPoisoned.Value, player0State.isPoisoned.Value);
+                }
+
+                if (lastValidPlayer0State.isCursed.Value != player0State.isCursed.Value)
+                {
+                    yield return new Event(PlayerState.Fields.isCursed, 0, update.time,
+                        lastValidPlayer0State.isCursed.Value, player0State.isCursed.Value);
+                }
+
+                lastValidGameState.Update(gameState);
+                lastValidPlayer0State.Update(player0State);
+            }
+        }
+
+        static double GetScore(Event evnt, EditorConfiguration config, out double beforeTime, out double afterTime)
+        {
+            var score = 0d;
+            beforeTime = 0d;
+            afterTime = 0d;
+
+            foreach (var category in config.EventCategories)
+            {
+                if (!category.Events.Contains(evnt.Field))
+                {
+                    continue;
+                }
+
+                var delta = evnt.Delta;
+
+                switch (category.Filter)
+                {
+                    case EditorConfiguration.Filter.Increase:
+                        if (delta < 0) continue;
+                        break;
+                    case EditorConfiguration.Filter.Decrease:
+                        if (delta > 0) continue;
+                        delta = -delta;
+                        break;
+                }
+
+                var value = category.Absolute ? evnt.Value : delta;
+
+                if (value < category.Minimum || value > category.Maximum)
+                {
+                    continue;
+                }
+
+                beforeTime = Math.Max(beforeTime, category.BeforeTime);
+                afterTime = Math.Max(afterTime, category.AfterTime);
+
+                switch (category.ScoreType)
+                {
+                    case EditorConfiguration.ScoreType.Constant:
+                        score += category.Score;
+                        break;
+                    case EditorConfiguration.ScoreType.Linear:
+                        score += category.Score * Math.Abs(value);
+                        break;
+                }
+            }
+
+            return score;
         }
     }
 }

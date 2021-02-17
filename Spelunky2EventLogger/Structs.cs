@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Serialization;
 
 namespace Spelunky2EventLogger
 {
@@ -18,51 +17,50 @@ namespace Spelunky2EventLogger
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct AutoSplitter : IGameStruct
     {
-        [JsonIgnore] public ulong magic;
-        [JsonIgnore] public ulong uniq;
-        [JsonIgnore] public uint counter;
-        [JsonIgnore] public byte screen;
-        [JsonIgnore] public byte loading;
-        [JsonProperty("loading")]
-        public bool IsLoading => loading != 0;
-        [JsonIgnore] public byte trans;
+        public ulong magic;
+        public ulong uniq;
+        public uint counter;
+        public byte screen;
+        public byte _loading;
+        public bool loading => _loading != 0;
+        public byte trans;
         [MarshalAs(UnmanagedType.U1)]
         public bool ingame;
         [MarshalAs(UnmanagedType.U1)]
         public bool playing;
-        [JsonIgnore, MarshalAs(UnmanagedType.U1)] public bool playing2;
-        [JsonIgnore] public byte pause;
-        [JsonProperty("pause"), MarshalAs(UnmanagedType.U1)]
-        public bool pause2;
+        [MarshalAs(UnmanagedType.U1)] public bool playing2;
+        public byte _pause;
+        [MarshalAs(UnmanagedType.U1)]
+        public bool pause;
         [IgnoreChange]
         public uint igt;
         public byte world;
         public byte level;
         public byte door;
-        [JsonIgnore] public uint characters;
-        [JsonIgnore] public uint unlockedCharacterCount;
-        [JsonIgnore] public byte shortcuts;
-        [JsonIgnore] public uint tries;
-        [JsonIgnore] public uint deaths;
-        [JsonIgnore] public uint normalWins;
-        [JsonIgnore] public uint hardWins;
-        [JsonIgnore] public uint specialWins;
-        [JsonIgnore] public ulong averageScore;
-        [JsonIgnore] public uint topScore;
-        [JsonIgnore] public ulong averageTime;
-        [JsonIgnore] public uint bestTime;
-        [JsonIgnore] public byte bestWorld;
-        [JsonIgnore] public byte bestLevel;
+        public uint characters;
+        public uint unlockedCharacterCount;
+        public byte shortcuts;
+        public uint tries;
+        public uint deaths;
+        public uint normalWins;
+        public uint hardWins;
+        public uint specialWins;
+        public ulong averageScore;
+        public uint topScore;
+        public ulong averageTime;
+        public uint bestTime;
+        public byte bestWorld;
+        public byte bestLevel;
         public ulong currentScore;
         [MarshalAs(UnmanagedType.U1)]
         public bool udjatEyeAvailable;
-        [JsonIgnore, MarshalAs(UnmanagedType.U1)] public bool seededRun;
+        [MarshalAs(UnmanagedType.U1)] public bool seededRun;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public unsafe struct Player : IGameStruct
     {
-        [JsonIgnore, MarshalAs(UnmanagedType.U1)] public bool used;
+        [MarshalAs(UnmanagedType.U1)] public bool used;
         public byte life;
         public byte numBombs;
         public byte numRopes;
@@ -74,64 +72,132 @@ namespace Spelunky2EventLogger
         public bool isPoisoned;
         [MarshalAs(UnmanagedType.U1)]
         public bool isCursed;
-        [JsonIgnore] public fixed byte reserved[128];
+        public fixed byte reserved[128];
     }
 
-    public partial class Program
+    public struct WatchedProperty
     {
-        public static JObject GetFields<T>(in T value)
-            where T : struct, IGameStruct
+        public readonly MemberInfo SrcFieldOrProperty;
+        public readonly PropertyInfo DstProperty;
+        public readonly Type ValueType;
+
+        public WatchedProperty(MemberInfo srcFieldOrProperty, PropertyInfo dstProperty, Type valueType)
         {
-            return JObject.FromObject(value);
+            SrcFieldOrProperty = srcFieldOrProperty;
+            DstProperty = dstProperty;
+            ValueType = valueType;
+        }
+    }
+
+    public static class WatchedProperties<TGameStruct, TEventState>
+        where TGameStruct : struct, IGameStruct
+        where TEventState : class, IEventState
+    {
+        private static WatchedProperty[] Cached;
+
+        private static WatchedProperty[] GetAll()
+        {
+            if (Cached != null) return Cached;
+
+            var watched = new List<WatchedProperty>();
+
+            foreach (var dstProperty in typeof(TEventState).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var valueType = dstProperty.PropertyType;
+
+                if (valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    valueType = valueType.GenericTypeArguments[0];
+                }
+
+                var srcField = typeof(TGameStruct).GetField(dstProperty.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                var srcProperty = typeof(TGameStruct).GetProperty(dstProperty.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if ((srcField == null || srcField.FieldType != valueType) && (srcProperty == null || srcProperty.PropertyType != valueType))
+                {
+                    throw new Exception($"Unable to find matching field \"{dstProperty.Name}\" in {typeof(TGameStruct).FullName}.");
+                }
+
+                watched.Add(new WatchedProperty((MemberInfo) srcField ?? srcProperty, dstProperty, valueType));
+            }
+
+            return Cached = watched.ToArray();
         }
 
-        public static bool HaveFieldsChanged<T>(in T oldValue, in T newValue)
+        public static void CopyAllFields(in TGameStruct gameStruct, TEventState eventState)
         {
-            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var watched = GetAll();
+
+            foreach (var watchedProperty in watched)
             {
-                if (fieldInfo.GetCustomAttribute<JsonIgnoreAttribute>() != null) continue;
-                if (fieldInfo.GetCustomAttribute<IgnoreChangeAttribute>() != null) continue;
+                var srcField = watchedProperty.SrcFieldOrProperty as FieldInfo;
+                var srcProperty = watchedProperty.SrcFieldOrProperty as PropertyInfo;
 
-                var oldFieldValue = fieldInfo.GetValue(oldValue);
-                var newFieldValue = fieldInfo.GetValue(newValue);
+                var value = srcField?.GetValue(gameStruct) ?? srcProperty?.GetValue(gameStruct);
+                
+                // Will be true if DstField is nullable
+                if (watchedProperty.DstProperty.PropertyType != watchedProperty.ValueType)
+                {
+                    value = Activator.CreateInstance(watchedProperty.DstProperty.PropertyType, value);
+                }
 
-                if (!oldFieldValue.Equals(newFieldValue)) return true;
+                watchedProperty.DstProperty.SetValue(eventState, value);
+            }
+        }
+
+        public static bool HaveFieldsChanged(in TGameStruct oldGameStruct, in TGameStruct newGameStruct)
+        {
+            var watched = GetAll();
+
+            foreach (var watchedProperty in watched)
+            {
+                var srcField = watchedProperty.SrcFieldOrProperty as FieldInfo;
+                var srcProperty = watchedProperty.SrcFieldOrProperty as PropertyInfo;
+
+                var oldValue = srcField?.GetValue(oldGameStruct) ?? srcProperty?.GetValue(oldGameStruct);
+                var newValue = srcField?.GetValue(newGameStruct) ?? srcProperty?.GetValue(newGameStruct);
+
+                // Only count changes if DstField is nullable
+                if (!oldValue.Equals(newValue) && watchedProperty.DstProperty.PropertyType != watchedProperty.ValueType)
+                {
+                    return true;
+                }
             }
 
             return false;
         }
 
-        public static JObject GetChangedFields<T>(in T oldValue, in T newValue)
-            where T : struct, IGameStruct
+        public static int CopyChangedFields(in TGameStruct oldGameStruct, in TGameStruct newGameStruct, TEventState eventState)
         {
-            JObject outObj = null;
+            var changeCount = 0;
+            var watched = GetAll();
 
-            foreach (var fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            foreach (var watchedProperty in watched)
             {
-                if (fieldInfo.GetCustomAttribute<JsonIgnoreAttribute>() != null) continue;
+                var srcField = watchedProperty.SrcFieldOrProperty as FieldInfo;
+                var srcProperty = watchedProperty.SrcFieldOrProperty as PropertyInfo;
 
-                var oldFieldValue = fieldInfo.GetValue(oldValue);
-                var newFieldValue = fieldInfo.GetValue(newValue);
+                var oldValue = srcField?.GetValue(oldGameStruct) ?? srcProperty?.GetValue(oldGameStruct);
+                var newValue = srcField?.GetValue(newGameStruct) ?? srcProperty?.GetValue(newGameStruct);
+                
+                // Will be true if DstField is nullable
+                if (watchedProperty.DstProperty.PropertyType != watchedProperty.ValueType)
+                {
+                    if (oldValue.Equals(newValue))
+                    {
+                        watchedProperty.DstProperty.SetValue(eventState, null);
+                        continue;
+                    }
 
-                if (oldFieldValue.Equals(newFieldValue)) continue;
+                    // Only count changes if DstField is nullable
+                    ++changeCount;
+                    newValue = Activator.CreateInstance(watchedProperty.DstProperty.PropertyType, newValue);
+                }
 
-                var jsonPropertyAttrib = fieldInfo.GetCustomAttribute<JsonPropertyAttribute>();
-                var name = jsonPropertyAttrib?.PropertyName ?? fieldInfo.Name;
-
-                if (outObj == null) outObj = new JObject();
-                outObj.Add(name, JToken.FromObject(newFieldValue));
+                watchedProperty.DstProperty.SetValue(eventState, newValue);
             }
 
-            return outObj;
-        }
-
-        public static void PrintChangedFields<T>(TextWriter writer, List<FieldInfo> changedFields, in T value, string prefix = "")
-            where T : struct, IGameStruct
-        {
-            foreach (var fieldInfo in changedFields)
-            {
-                writer.WriteLine($"  {prefix}{fieldInfo.Name}: {fieldInfo.GetValue(value)}");
-            }
+            return changeCount;
         }
     }
 }

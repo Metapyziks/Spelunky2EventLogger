@@ -2,7 +2,7 @@
 
 Generate a timestamped log of things that happen in Spelunky 2.
 
-Example output: https://github.com/Metapyziks/Spelunky2EventLogger/blob/main/TestFiles/example.log
+Example output: https://github.com/Metapyziks/Spelunky2EventLogger/blob/main/TestFiles/example.json
 
 # Spelunky2AutoEditor
 

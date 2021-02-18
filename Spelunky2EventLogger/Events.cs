@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -267,7 +268,7 @@ namespace Spelunky2EventLogger
             var start = Math.Min(a.Start.Ticks, b.Start.Ticks);
             var end = Math.Max(a.End.Ticks, b.End.Ticks);
 
-            return new TimeRange(new TimeSpan(start), new TimeSpan(end - start));
+            return new TimeRange(new DateTime(start), new TimeSpan(end - start));
         }
 
         public static TimeRange Intersection(TimeRange a, TimeRange b)
@@ -280,7 +281,7 @@ namespace Spelunky2EventLogger
             var start = Math.Max(a.Start.Ticks, b.Start.Ticks);
             var end = Math.Min(a.End.Ticks, b.End.Ticks);
 
-            return new TimeRange(new TimeSpan(start), new TimeSpan(end - start));
+            return new TimeRange(new DateTime(start), new TimeSpan(end - start));
         }
 
         public static void TruncateOutsideRange(List<TimeRange> clips, TimeRange range)
@@ -324,30 +325,39 @@ namespace Spelunky2EventLogger
             }
         }
 
-        public readonly TimeSpan Start;
+        public readonly DateTime Start;
         public readonly TimeSpan Duration;
 
-        public TimeSpan End => Start + Duration;
+        public DateTime End => Start + Duration;
 
-        public TimeRange(TimeSpan start, TimeSpan duration)
+        public TimeRange(DateTime start, TimeSpan duration)
         {
             Start = start;
             Duration = duration;
         }
 
+        [Pure]
         public TimeRange Extend(TimeSpan margin)
         {
             return Extend(margin, margin);
         }
 
+        [Pure]
         public TimeRange Extend(TimeSpan beforeStart, TimeSpan afterEnd)
         {
             return new TimeRange(Start - beforeStart, Duration + beforeStart + afterEnd);
         }
 
+        [Pure]
         public bool Intersects(TimeRange other)
         {
             return Start < other.End && End > other.Start;
+        }
+
+        [Pure]
+        public bool Contains(TimeRange other)
+        {
+            return Start <= other.Start && End >= other.End;
         }
 
         public bool Equals(TimeRange other)

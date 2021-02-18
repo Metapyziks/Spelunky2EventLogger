@@ -2,7 +2,7 @@
   "profiles": {
     "Spelunky2AutoEditor": {
       "commandName": "Project",
-      "commandLineArgs": "--input-events \"daily-2021-02-15.log\" --input-video \"Spelunky 2 2021.02.15 - 19.23.35.02.mp4\" --output \"D:\\HardDiskShare\\UserFolder\\Videos\\Spelunky 2\\daily-2021-02-15-lowlights.mp4\"",
+      "commandLineArgs": "--input-events \"daily-2021-02-15.log\" --input-video-dir \".\" --output \"daily-2021-02-15-lowlights.mp4\"",
       "workingDirectory": "D:\\HardDiskShare\\UserFolder\\Videos\\Spelunky 2"
     }
   }

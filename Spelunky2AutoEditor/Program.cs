@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,11 +17,23 @@ namespace Spelunky2AutoEditor
     {
         public class AppConfiguration
         {
-            public string InputVideoPath { get; set; }
+            public string InputVideoDirectory { get; set; } = "{userprofile}\\Videos\\Spelunky 2";
+            public string InputVideoFileName { get; set; } = "Spelunky 2 {?startTime:yyyy.MM.dd - HH.mm.ss.ff}[.DVR].mp4";
+
+            public string InputVideoPath
+            {
+                get => Path.Join(InputVideoDirectory, InputVideoFileName);
+                set
+                {
+                    InputVideoDirectory = Path.GetDirectoryName(value);
+                    InputVideoFileName = Path.GetFileName(value);
+                }
+            }
+
             public string InputEventsPath { get; set; }
             public string OutputPath { get; set; }
             public DateTime? VideoStartUtc { get; set; }
-            public string FfmpegPath { get; set; }
+            public string FfmpegPath { get; set; } = "ffmpeg.exe";
 
             public string EditorConfigPath { get; set; }
 
@@ -29,8 +42,6 @@ namespace Spelunky2AutoEditor
                 get => VideoStartUtc?.ToLocalTime();
                 set => VideoStartUtc = value?.ToUniversalTime();
             }
-
-            public TimeSpan? VideoDuration { get; set; }
         }
 
         public class EditorConfiguration
@@ -92,6 +103,38 @@ namespace Spelunky2AutoEditor
                 }
             };
 
+            public static readonly EditorConfiguration LowlightsRapid = new EditorConfiguration
+            {
+                EventCategories =
+                {
+                    // Lost health
+                    new EditorConfiguration.EventCategory
+                    {
+                        Events = { PlayerState.Fields.life },
+                        Filter = EditorConfiguration.Filter.Decrease,
+                        ScoreType = EditorConfiguration.ScoreType.Linear,
+                        BeforeTime = 1d,
+                        AfterTime = 0.5d,
+                    },
+                    // Lost ankh or died
+                    new EditorConfiguration.EventCategory
+                    {
+                        Events = { PlayerState.Fields.hasAnkh, PlayerState.Fields.life },
+                        Absolute = true,
+                        ExactValue = 0,
+                        Score = 100d
+                    },
+                    // Poisoned or cursed
+                    new EditorConfiguration.EventCategory
+                    {
+                        Events = { PlayerState.Fields.isPoisoned, PlayerState.Fields.isCursed },
+                        Absolute = true,
+                        ExactValue = 1,
+                        Score = 50d
+                    }
+                }
+            };
+
             public class EventCategory
             {
                 public List<EventField> Events { get; } = new List<EventField>();
@@ -114,7 +157,19 @@ namespace Spelunky2AutoEditor
             public double MaxMergeTime { get; set; } = 3d;
         }
 
-        private const string DateTimeFormat = "YYYY.MM.DD - hh.mm.ss.ff";
+        public struct InputVideo
+        {
+            public readonly string Path;
+            public readonly TimeRange TimeRange;
+
+            public InputVideo(string path, DateTime startTime, TimeSpan duration)
+            {
+                Path = path;
+                TimeRange = new TimeRange(startTime, duration);
+            }
+        }
+
+        private const string DateTimeFormat = "yyyy.MM.dd - HH.mm.ss.ff";
 
         private static readonly Regex DateTimeRegex = new Regex(@"(?:^|[^0-9])(?<year>[0-9]{2}(?:[0-9]{2})?)\.(?<month>[0-9]{1,2})\.(?<day>[0-9]{1,2})\s*-\s*(?<hour>[0-9]{1,2})\.(?<minute>[0-9]{1,2})\.(?<second>[0-9]{1,2}(?:\.[0-9]+)?)(?:$|[^0-9])");
 
@@ -172,22 +227,18 @@ namespace Spelunky2AutoEditor
             var configBuilder = new ConfigurationBuilder();
 
             configBuilder
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    [nameof(AppConfiguration.FfmpegPath)] = "ffmpeg.exe"
-                })
                 .AddJsonFile("Config.json", true)
                 .AddCommandLine(args, new Dictionary<string, string>
                 {
                     ["--input-video"] = nameof(AppConfiguration.InputVideoPath),
+                    ["--input-video-dir"] = nameof(AppConfiguration.InputVideoDirectory),
+                    ["--input-video-filename"] = nameof(AppConfiguration.InputVideoFileName),
                     ["--input-events"] = nameof(AppConfiguration.InputEventsPath),
 
                     ["--output"] = nameof(AppConfiguration.OutputPath),
 
                     ["--video-start-utc"] = nameof(AppConfiguration.VideoStartUtc),
-                    ["--video-start-local"] = nameof(AppConfiguration.VideoStartLocal),
-
-                    ["--video-duration"] = nameof(AppConfiguration.VideoDuration)
+                    ["--video-start-local"] = nameof(AppConfiguration.VideoStartLocal)
                 });
 
             Configuration = configBuilder.Build().Get<AppConfiguration>();
@@ -198,50 +249,65 @@ namespace Spelunky2AutoEditor
                 return 1;
             }
 
-            var videoStartUtc = Configuration.VideoStartUtc ?? default;
-
-            if (!Configuration.VideoStartUtc.HasValue && Configuration.InputVideoPath != null
-                && !TryParseDateTime(Path.GetFileNameWithoutExtension(Configuration.InputVideoPath), out videoStartUtc))
-            {
-                Console.Error.WriteLine($"Unable to determine video start date/time.{Environment.NewLine}" +
-                    $"Try using --video-start-utc, or a video with a date in the filename formatted like \"{DateTimeFormat}\".");
-                return 1;
-            }
-
-            var videoDuration = Configuration.VideoDuration ?? default;
-
-            if (!Configuration.VideoStartUtc.HasValue && Configuration.InputVideoPath != null
-                && !TryGetVideoDuration(Configuration.InputVideoPath, out videoDuration))
-            {
-                Console.Error.WriteLine($"Unable to determine video duration.{Environment.NewLine}" +
-                    $"Try using --video-duration, or --input-video <path> with a valid video file.");
-                return 1;
-            }
-
-            EditorConfiguration editorConfig = EditorConfiguration.Lowlights;
+            var editorConfig = EditorConfiguration.LowlightsRapid;
 
             if (Configuration.EditorConfigPath != null)
             {
                 editorConfig = JsonSerializer.Deserialize<EditorConfiguration>(File.ReadAllText(Configuration.EditorConfigPath), JsonSerializerOptions);
             }
 
+            var stateUpdates = ReadStateUpdates(Configuration.InputEventsPath)
+                .ToArray();
+
+            var firstUpdateTime = stateUpdates[0].time;
+            var lastUpdateTime = stateUpdates[^1].time;
+            var updateTimeRange = new TimeRange(firstUpdateTime, lastUpdateTime - firstUpdateTime);
+
+            Console.Error.WriteLine($"Total updates: {stateUpdates.Length}");
+            Console.Error.WriteLine($"  Start time: {updateTimeRange.Start}");
+            Console.Error.WriteLine($"  Duration: {updateTimeRange.Duration}");
+            Console.Error.WriteLine();
+
+            var inputVideos = GetInputVideos(Configuration.InputVideoPath)
+                .Where(x => x.TimeRange.Intersects(updateTimeRange))
+                .ToArray();
+
+            if (inputVideos.Length == 0)
+            {
+                Console.Error.WriteLine("Unable to find any matching input videos.");
+                return 1;
+            }
+
+            foreach (var inputVideo in inputVideos)
+            {
+                Console.Error.WriteLine($"Input video: {inputVideo.Path}");
+                Console.Error.WriteLine($"  Start time: {inputVideo.TimeRange.Start}");
+                Console.Error.WriteLine($"  Duration: {inputVideo.TimeRange.Duration}");
+                Console.Error.WriteLine();
+            }
+
             var clips = new List<TimeRange>();
 
-            foreach (var evnt in GetEvents(ReadStateUpdates(Configuration.InputEventsPath)))
+            foreach (var evnt in GetEvents(stateUpdates))
             {
                 var score = GetScore(evnt, editorConfig, out var beforeTime, out var afterTime);
                 if (score > 0d)
                 {
-                    clips.Add(new TimeRange(evnt.Time - videoStartUtc, TimeSpan.Zero)
+                    clips.Add(new TimeRange(evnt.Time, TimeSpan.Zero)
                         .Extend(TimeSpan.FromSeconds(beforeTime), TimeSpan.FromSeconds(afterTime)));
                 }
             }
 
+            Console.Error.WriteLine($"Events to clip: {clips.Count}");
+
             clips.Sort((a, b) => a.Start.CompareTo(b.Start));
+            clips.RemoveAll(x => inputVideos.All(y => !y.TimeRange.Contains(x)));
+
+            // TODO: might merge clips from different input videos
             TimeRange.RemoveIntersections(clips, TimeSpan.FromSeconds(editorConfig.MaxMergeTime));
-            TimeRange.TruncateOutsideRange(clips, new TimeRange(TimeSpan.Zero, videoDuration));
 
             Console.Error.WriteLine($"Total duration: {clips.Aggregate(TimeSpan.Zero, (s, x) => s + x.Duration)}");
+            Console.Error.WriteLine();
 
             if (clips.Count == 0)
             {
@@ -249,9 +315,11 @@ namespace Spelunky2AutoEditor
                 return 1;
             }
 
+            var editArgs = GetVideoEditArgs(inputVideos, clips, Configuration.OutputPath);
+
             if (Configuration.OutputPath == null)
             {
-                Console.WriteLine(GetComplexFilterString(clips));
+                Console.WriteLine(FormatArgs(editArgs));
                 return 0;
             }
 
@@ -259,17 +327,141 @@ namespace Spelunky2AutoEditor
 
             if (ext == ".txt")
             {
-                File.WriteAllText(Configuration.OutputPath, GetComplexFilterString(clips));
+                File.WriteAllText(Configuration.OutputPath, FormatArgs(editArgs));
                 return 0;
             }
 
-            if (ext == Path.GetExtension(Configuration.InputVideoPath)?.ToLower())
+            Ffmpeg(editArgs);
+            return 0;
+        }
+
+        private static readonly Regex SpecialCharactersRegex = new Regex(@"[.+*?^$()[\]{}\\]");
+
+        static string EscapeRegexSpecialCharacters(string value)
+        {
+            return SpecialCharactersRegex.Replace(value, match => $"\\{match.Value}");
+        }
+
+        private static readonly Regex PatternRegex = new Regex(@"\{\s*\?\s*(?<name>[A-Za-z0-9_]+)\s*(?::(?<format>[^}]+))?\}|\[(?<optional>[^\]]+)\]");
+        private static readonly Regex DateTimeFormatRegex = new Regex(@"yyyy|yy|MM|M|dd|d|HH|H|mm|m|ss|s|f{1,3}");
+
+        static string GetDateTimeRegexString(string format)
+        {
+            return DateTimeFormatRegex.Replace(EscapeRegexSpecialCharacters(format), match =>
             {
-                return EditVideo(Configuration.InputVideoPath, clips, Configuration.OutputPath) ? 0 : 1;
+                var character = match.Value[0];
+                var length = match.Length;
+
+                var minLength = length == 1 ? 1 : length;
+                var maxLength = length == 1 ? 2 : length;
+
+                if (character == 'f') minLength = maxLength = length;
+
+                return minLength == maxLength ? minLength == 1 ? @"[0-9]" : $@"[0-9]{{{minLength}}}" : $@"[0-9]{{{minLength},{maxLength}}}";
+            });
+        }
+
+        static IEnumerable<InputVideo> GetInputVideos(string inputVideoPath)
+        {
+            inputVideoPath = Utilities.FormatPath(inputVideoPath);
+
+            var inputDir = Path.GetDirectoryName(inputVideoPath);
+            var inputFileName = Path.GetFileName(inputVideoPath);
+
+            if (PatternRegex.IsMatch(inputDir))
+            {
+                throw new NotImplementedException("Wildcards in directory names aren't supported yet.");
             }
 
-            Console.Error.WriteLine($"Unexpected output extension \"{ext}\". Please use either \".txt\" or the same extension as the input video.");
-            return 1;
+            if (!PatternRegex.IsMatch(inputFileName))
+            {
+                if (!Configuration.VideoStartUtc.HasValue)
+                {
+                    throw new Exception("Unable to determine input video start time.");
+                }
+
+                yield return new InputVideo(inputVideoPath, Configuration.VideoStartUtc.Value, GetVideoDuration(inputVideoPath));
+                yield break;
+            }
+
+            var parts = new List<string>();
+
+            var matches = PatternRegex.Matches(inputFileName);
+            var lastMatchEnd = 0;
+
+            var formats = new Dictionary<string, string>();
+
+            foreach (Match match in matches)
+            {
+                if (match.Index > lastMatchEnd)
+                {
+                    parts.Add(EscapeRegexSpecialCharacters(inputFileName.Substring(lastMatchEnd, match.Index - lastMatchEnd)));
+                }
+
+                if (match.Groups["optional"].Success)
+                {
+                    parts.Add($@"({EscapeRegexSpecialCharacters(match.Groups["optional"].Value)})?");
+                }
+                else if (match.Groups["name"].Success)
+                {
+                    var name = match.Groups["name"].Value;
+                    var format = match.Groups["format"].Success ? match.Groups["format"].Value : DateTimeFormat;
+
+                    formats.Add(name, format);
+
+                    switch (name)
+                    {
+                        case "startTime":
+                        case "startTimeUtc":
+                            parts.Add($@"(?<{name}>{GetDateTimeRegexString(format)})");
+                            break;
+                        default:
+                            throw new Exception($"Unrecognised substitution name \"{name}\" in input video path.");
+                    }
+                }
+
+                lastMatchEnd = match.Index + match.Length;
+            }
+
+            if (lastMatchEnd < inputFileName.Length)
+            {
+                parts.Add(EscapeRegexSpecialCharacters(inputFileName.Substring(lastMatchEnd)));
+            }
+
+            var regexString = string.Join("", parts);
+
+            var regex = new Regex(regexString);
+
+            foreach (var file in Directory.GetFiles(inputDir))
+            {
+                var fileName = Path.GetFileName(file);
+                var match = regex.Match(fileName);
+
+                if (!match.Success) continue;
+
+                DateTime? startTime = null;
+
+                foreach (Group group in match.Groups)
+                {
+                    if (!group.Success || group.Name == null) continue;
+
+                    switch (group.Name)
+                    {
+                        case "startTime":
+                        case "startTimeUtc":
+                            startTime = DateTime.ParseExact(group.Value, formats[group.Name], CultureInfo.InvariantCulture);
+                            if (!group.Name.EndsWith("Utc")) startTime = startTime.Value.ToUniversalTime();
+                            break;
+                    }
+                }
+
+                if (!startTime.HasValue)
+                {
+                    throw new Exception("Unable to determine input video start time.");
+                }
+
+                yield return new InputVideo(file, startTime.Value, GetVideoDuration(file));
+            }
         }
 
         private static readonly Regex DurationRegex = new Regex(@"^\s*Duration: (?<duration>[0-9:.]+),", RegexOptions.Multiline);
@@ -312,6 +504,16 @@ namespace Spelunky2AutoEditor
             return process.StandardError.ReadToEnd();
         }
 
+        static TimeSpan GetVideoDuration(string path)
+        {
+            if (!TryGetVideoDuration(path, out var duration))
+            {
+                throw new Exception($"Unable to determine video duration for \"{path}\".");
+            }
+
+            return duration;
+        }
+
         static bool TryGetVideoDuration(string path, out TimeSpan duration)
         {
             var result = FfmpegInfo(path);
@@ -327,49 +529,21 @@ namespace Spelunky2AutoEditor
             return false;
         }
 
-        static string GetComplexFilterString(IReadOnlyList<TimeRange> clips)
+        static string[] GetVideoEditArgs(IReadOnlyList<InputVideo> inputVideos, IReadOnlyList<TimeRange> clips, string outputPath)
         {
-            var writer = new StringWriter();
-
-            for (var i = 0; i < clips.Count; ++i)
-            {
-                var clip = clips[i];
-
-                writer.WriteLine($"[0:v]trim=start={clip.Start.TotalSeconds}:end={clip.End.TotalSeconds},setpts=PTS-STARTPTS[clip{i}v];");
-                writer.WriteLine($"[0:a]atrim=start={clip.Start.TotalSeconds}:end={clip.End.TotalSeconds},asetpts=PTS-STARTPTS[clip{i}a];");
-            }
-
-            for (var i = 0; i < clips.Count; ++i)
-            {
-                writer.Write($"[clip{i}v][clip{i}a]");
-
-                if (i % 4 == 3 || i == clips.Count - 1)
-                {
-                    writer.WriteLine();
-                }
-            }
-
-            writer.WriteLine($"concat=n={clips.Count}:v=1:a=1[outv][outa]");
-
-            return writer.ToString();
-        }
-
-        static bool EditVideo(string inputPath, IReadOnlyList<TimeRange> clips, string outputPath)
-        {
-            Console.Error.WriteLine($"Concatenating {clips.Count} clips...");
-            
             var args = new List<string>();
-
             var filterWriter = new StringWriter();
 
             var index = 0;
             foreach (var clip in clips)
             {
+                var inputVideo = inputVideos.First(x => x.TimeRange.Contains(clip));
+
                 args.AddRange(new[]
                 {
-                    "-ss", clip.Start.TotalSeconds.ToString("F3"),
+                    "-ss", (clip.Start - inputVideo.TimeRange.Start).TotalSeconds.ToString("F3"),
                     "-t", clip.Duration.TotalSeconds.ToString("F3"),
-                    "-i", inputPath
+                    "-i", inputVideo.Path
                 });
 
                 filterWriter.Write($"[{index}:v][{index}:a]");
@@ -383,13 +557,32 @@ namespace Spelunky2AutoEditor
             {
                 "-filter_complex", filterWriter.ToString(),
                 "-y", "-stats",
-                "-loglevel", "quiet",
-                outputPath
+                "-loglevel", "quiet"
             });
 
-            Ffmpeg(args.ToArray());
+            if (!string.IsNullOrEmpty(outputPath))
+            {
+                args.Add(outputPath);
+            }
 
-            return true;
+            return args.ToArray();
+        }
+
+        static string FormatArgs(IReadOnlyList<string> args)
+        {
+            var writer = new StringWriter();
+
+            var first = true;
+
+            foreach (var arg in args)
+            {
+                if (!first) writer.Write(" ");
+                else first = false;
+
+                writer.Write(arg.StartsWith('-') ? arg : $"\"{arg}\"");
+            }
+
+            return writer.ToString();
         }
 
         static IEnumerable<StateUpdate> ReadStateUpdates(string path)

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
@@ -16,10 +14,10 @@ namespace Spelunky2EventLogger
     {
         public class AppConfiguration
         {
-            public int PollPeriodMilliseconds { get; set; }
-            public int KeyframePeriodMilliseconds { get; set; }
-            public string OutputDirectory { get; set; }
-            public string OutputFileName { get; set; }
+            public double PollPeriod { get; set; } = 0.01;
+            public double KeyframePeriod { get; set; } = 60;
+            public string OutputDirectory { get; set; } = "{userprofile}\\Videos\\Spelunky 2";
+            public string OutputFileName { get; set; } = "Spelunky 2 {startTimeUtc:yyyy.MM.dd - HH.mm.ss.ff}.log";
 
             public string OutputPath
             {
@@ -39,18 +37,11 @@ namespace Spelunky2EventLogger
             var configBuilder = new ConfigurationBuilder();
 
             configBuilder
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    [nameof(AppConfiguration.PollPeriodMilliseconds)] = "10",
-                    [nameof(AppConfiguration.KeyframePeriodMilliseconds)] = "60000",
-                    [nameof(AppConfiguration.OutputDirectory)] = "{userprofile}\\Videos\\Spelunky 2",
-                    [nameof(AppConfiguration.OutputFileName)] = "Spelunky 2 {utcNow:yyyy.MM.dd} - {utcNow:HH.mm.ss.ff}.events.log",
-                })
                 .AddJsonFile("Config.json", true)
                 .AddCommandLine(args, new Dictionary<string, string>
                 {
-                    ["--poll-period"] = nameof(AppConfiguration.PollPeriodMilliseconds),
-                    ["--keyframe-period"] = nameof(AppConfiguration.KeyframePeriodMilliseconds),
+                    ["--poll-period"] = nameof(AppConfiguration.PollPeriod),
+                    ["--keyframe-period"] = nameof(AppConfiguration.KeyframePeriod),
 
                     ["-o"] = nameof(AppConfiguration.OutputPath),
                     ["--output"] = nameof(AppConfiguration.OutputPath),
@@ -62,7 +53,7 @@ namespace Spelunky2EventLogger
             Configuration = configBuilder.Build().Get<AppConfiguration>();
 
             Console.WriteLine("Searching for Spelunky 2...");
-            var process = await FindProcess("Spel2");
+            var process = await Utilities.FindProcess("Spel2");
 
             using var scanner = new MemoryScanner(process);
 
@@ -93,11 +84,10 @@ namespace Spelunky2EventLogger
 
             var outputPath = Path.Combine(Configuration.OutputDirectory, Configuration.OutputFileName);
 
-            outputPath = FormatPath(outputPath, new Dictionary<string, object>
+            outputPath = Utilities.FormatPath(outputPath, new Dictionary<string, object>
             {
-                ["userprofile"] = Environment.GetEnvironmentVariable("userprofile"),
-                ["now"] = DateTime.Now,
-                ["utcNow"] = DateTime.UtcNow
+                ["startTime"] = DateTime.Now,
+                ["startTimeUtc"] = DateTime.UtcNow
             });
 
             Console.WriteLine($"Creating log: \"{outputPath}\"");
@@ -141,7 +131,7 @@ namespace Spelunky2EventLogger
             {
                 var now = DateTime.UtcNow;
 
-                if (changedSinceKeyframe && (firstKeyframe || keyframeTimer.ElapsedMilliseconds >= Configuration.KeyframePeriodMilliseconds))
+                if (changedSinceKeyframe && (firstKeyframe || keyframeTimer.Elapsed.TotalSeconds >= Configuration.KeyframePeriod))
                 {
                     keyframeTimer.Restart();
                     firstKeyframe = false;
@@ -199,49 +189,11 @@ namespace Spelunky2EventLogger
                 autoSplitterPrev = autoSplitter;
                 playerPrev = player;
 
-                await Task.Delay(Math.Max(Configuration.PollPeriodMilliseconds - (int) timer.ElapsedMilliseconds, 0));
+                await Task.Delay(TimeSpan.FromSeconds(Math.Max(Configuration.PollPeriod - timer.Elapsed.TotalSeconds, 0)));
                 timer.Restart();
             }
 
             return 0;
-        }
-
-        private static readonly Regex FormatRegex = new Regex(@"\{\s*(?<name>[A-Za-z0-9_]+)\s*(?::(?<format>[^}]+))?\}");
-
-        private static string FormatPath(string path, IReadOnlyDictionary<string, object> values)
-        {
-            return FormatRegex.Replace(path, match =>
-            {
-                var name = match.Groups["name"].Value;
-
-                if (!values.TryGetValue(name, out var value))
-                {
-                    return "";
-                }
-
-                if (value is IFormattable formattable && match.Groups["format"].Success)
-                {
-                    var format = match.Groups["format"].Value;
-                    return formattable.ToString(format, null);
-                }
-
-                return value.ToString();
-            });
-        }
-
-        private static async Task<Process> FindProcess(string name)
-        {
-            while (true)
-            {
-                var process = Process.GetProcessesByName(name).FirstOrDefault();
-
-                if (process != null)
-                {
-                    return process;
-                }
-
-                await Task.Delay(500);
-            }
         }
     }
 }

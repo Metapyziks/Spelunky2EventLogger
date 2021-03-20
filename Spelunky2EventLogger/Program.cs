@@ -14,10 +14,11 @@ namespace Spelunky2EventLogger
     {
         public class AppConfiguration
         {
-            public double PollPeriod { get; set; } = 0.01;
-            public double KeyframePeriod { get; set; } = 60;
-            public string OutputDirectory { get; set; } = "{userprofile}\\Videos\\Spelunky 2";
-            public string OutputFileName { get; set; } = "Spelunky 2 {startTimeUtc:yyyy.MM.dd - HH.mm.ss.ff}.log";
+            public double PollPeriod { get; set; }
+            public double KeyframePeriod { get; set; }
+            public string OutputDirectory { get; set; }
+            public string OutputFileName { get; set; }
+            public bool ForceSingleFile { get; set; }
 
             public string OutputPath
             {
@@ -32,11 +33,59 @@ namespace Spelunky2EventLogger
 
         public static AppConfiguration Configuration { get; set; }
 
+        private static string GetOutputFileName(DateTime timeUtc, int index)
+        {
+            var baseOutputPath = Path.Combine(Configuration.OutputDirectory, Configuration.OutputFileName);
+
+            return Utilities.FormatPath(baseOutputPath, new Dictionary<string, object>
+            {
+                ["startTime"] = timeUtc.ToLocalTime(),
+                ["startTimeUtc"] = timeUtc,
+                ["index"] = index
+            });
+        }
+
+        private static StreamWriter CreateLogFile(DateTime timeUtc, bool useIndex, ref int lastIndex)
+        {
+            var baseOutputPath = Path.Combine(Configuration.OutputDirectory, Configuration.OutputFileName);
+
+            if (!useIndex)
+            {
+                return CreateLogFile(GetOutputFileName(timeUtc, 0));
+            }
+
+            string path;
+            while (File.Exists(path = GetOutputFileName(timeUtc, ++lastIndex))) ;
+
+            return CreateLogFile(path);
+        }
+
+        private static StreamWriter CreateLogFile(string path)
+        {
+            Console.WriteLine($"Creating log: \"{path}\"");
+
+            var dir = Path.GetDirectoryName(path);
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            return File.CreateText(path);
+        }
+
         private static async Task<int> Main(string[] args)
         {
             var configBuilder = new ConfigurationBuilder();
 
             configBuilder
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    [nameof(AppConfiguration.PollPeriod)] = "0.01",
+                    [nameof(AppConfiguration.KeyframePeriod)] = "60",
+                    [nameof(AppConfiguration.OutputDirectory)] = "{userprofile}\\Videos\\Spelunky 2",
+                    [nameof(AppConfiguration.OutputFileName)] = "Spelunky 2 {startTimeUtc:yyyy.MM.dd - HH.mm.ss}.{index:00}.log",
+                    [nameof(AppConfiguration.ForceSingleFile)] = "false"
+                })
                 .AddJsonFile("Config.json", true)
                 .AddCommandLine(args, new Dictionary<string, string>
                 {
@@ -48,6 +97,8 @@ namespace Spelunky2EventLogger
 
                     ["--output-dir"] = nameof(AppConfiguration.OutputDirectory),
                     ["--output-filename"] = nameof(AppConfiguration.OutputFileName),
+
+                    ["--force-single-file"] = nameof(AppConfiguration.ForceSingleFile)
                 });
 
             Configuration = configBuilder.Build().Get<AppConfiguration>();
@@ -82,24 +133,9 @@ namespace Spelunky2EventLogger
 
             Console.WriteLine($"Player address: 0x{playerAddress.ToInt64():x}");
 
-            var outputPath = Path.Combine(Configuration.OutputDirectory, Configuration.OutputFileName);
-
-            outputPath = Utilities.FormatPath(outputPath, new Dictionary<string, object>
-            {
-                ["startTime"] = DateTime.Now,
-                ["startTimeUtc"] = DateTime.UtcNow
-            });
-
-            Console.WriteLine($"Creating log: \"{outputPath}\"");
-
-            var outputDir = Path.GetDirectoryName(outputPath);
-
-            if (!Directory.Exists(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
-
-            using var writer = File.CreateText(outputPath);
+            var utcNow = DateTime.UtcNow;
+            var singleFile = Configuration.ForceSingleFile || GetOutputFileName(utcNow, 0) == GetOutputFileName(utcNow.AddSeconds(5d), 1);
+            var useIndex = GetOutputFileName(utcNow, 0) != GetOutputFileName(utcNow, 1);
 
             var timer = new Stopwatch();
             timer.Start();
@@ -114,6 +150,8 @@ namespace Spelunky2EventLogger
             Player playerWritten = default;
             Player playerPrev = default;
 
+            var lastIgt = uint.MaxValue;
+
             GameState gameState = new GameState();
             PlayerState player0State = new PlayerState();
 
@@ -127,70 +165,105 @@ namespace Spelunky2EventLogger
                 }
             };
 
-            while (scanner.ReadStructure<AutoSplitter>(autoSplitterAddress, out var autoSplitter) && scanner.ReadStructure<Player>(playerAddress, out var player))
+            StreamWriter writer = null;
+            var lastFileIndex = 0;
+
+            if (singleFile)
             {
-                var now = DateTime.UtcNow;
+                writer = CreateLogFile(utcNow, useIndex, ref lastFileIndex);
+            }
 
-                if (changedSinceKeyframe && (firstKeyframe || keyframeTimer.Elapsed.TotalSeconds >= Configuration.KeyframePeriod))
+            try
+            {
+                while (scanner.ReadStructure<AutoSplitter>(autoSplitterAddress, out var autoSplitter) &&
+                       scanner.ReadStructure<Player>(playerAddress, out var player))
                 {
-                    keyframeTimer.Restart();
-                    firstKeyframe = false;
+                    if (autoSplitterPrev.uniq == autoSplitter.uniq) continue;
 
-                    changedSinceKeyframe = false;
-
-                    WatchedProperties<AutoSplitter, GameState>.CopyAllFields(in autoSplitter, gameState);
-                    WatchedProperties<Player, PlayerState>.CopyAllFields(in player, player0State);
-
-                    writer.Write(JsonSerializer.Serialize(new StateUpdate
-                    {
-                        type = UpdateType.Keyframe,
-                        time = now,
-                        game = gameState,
-                        player0 = player0State
-                    }, jsonOptions));
-                    writer.WriteLine(",");
-                    await writer.FlushAsync();
-
-                    autoSplitterWritten = autoSplitter;
-                    playerWritten = player;
-                }
-                else if (autoSplitterPrev.uniq != autoSplitter.uniq)
-                {
-                    var stable = !WatchedProperties<AutoSplitter, GameState>.HaveFieldsChanged(autoSplitterPrev, autoSplitter)
+                    var stable =
+                        !WatchedProperties<AutoSplitter, GameState>.HaveFieldsChanged(autoSplitterPrev, autoSplitter)
                         && !WatchedProperties<Player, PlayerState>.HaveFieldsChanged(playerPrev, player);
 
                     if (stable)
                     {
-                        var autoSplitterChanged = WatchedProperties<AutoSplitter, GameState>.CopyChangedFields(
-                            autoSplitterWritten, autoSplitter, gameState);
+                        var now = DateTime.UtcNow;
 
-                        var playerChanged = WatchedProperties<Player, PlayerState>.CopyChangedFields(
-                            playerWritten, player, player0State);
-
-                        if (autoSplitterChanged + playerChanged > 0)
+                        if (!singleFile && autoSplitter.playing && autoSplitter.ingame)
                         {
-                            changedSinceKeyframe = true;
-
-                            writer.Write(JsonSerializer.Serialize(new StateUpdate
+                            if (autoSplitter.igt < lastIgt)
                             {
-                                type = UpdateType.Delta,
-                                time = now,
-                                game = gameState,
-                                player0 = playerChanged > 0 ? player0State : null
-                            }, jsonOptions));
-                            writer.WriteLine(",");
+                                firstKeyframe = true;
+                                writer?.Dispose();
+                                writer = CreateLogFile(now, useIndex, ref lastFileIndex);
+                            }
 
-                            autoSplitterWritten = autoSplitter;
-                            playerWritten = player;
+                            lastIgt = autoSplitter.igt;
+                        }
+
+                        if (writer != null)
+                        {
+                            if (changedSinceKeyframe && (firstKeyframe || keyframeTimer.Elapsed.TotalSeconds >= Configuration.KeyframePeriod))
+                            {
+                                keyframeTimer.Restart();
+
+                                firstKeyframe = false;
+                                changedSinceKeyframe = false;
+
+                                WatchedProperties<AutoSplitter, GameState>.CopyAllFields(in autoSplitter, gameState);
+                                WatchedProperties<Player, PlayerState>.CopyAllFields(in player, player0State);
+
+                                writer.Write(JsonSerializer.Serialize(new StateUpdate
+                                {
+                                    type = UpdateType.Keyframe,
+                                    time = now,
+                                    game = gameState,
+                                    player0 = player0State
+                                }, jsonOptions));
+                                writer.WriteLine(",");
+                                await writer.FlushAsync();
+
+                                autoSplitterWritten = autoSplitter;
+                                playerWritten = player;
+                            }
+                            else
+                            {
+                                var autoSplitterChanged = WatchedProperties<AutoSplitter, GameState>.CopyChangedFields(
+                                    autoSplitterWritten, autoSplitter, gameState);
+
+                                var playerChanged = WatchedProperties<Player, PlayerState>.CopyChangedFields(
+                                    playerWritten, player, player0State);
+
+                                if (autoSplitterChanged + playerChanged > 0)
+                                {
+                                    changedSinceKeyframe = true;
+
+                                    writer.Write(JsonSerializer.Serialize(new StateUpdate
+                                    {
+                                        type = UpdateType.Delta,
+                                        time = now,
+                                        game = gameState,
+                                        player0 = playerChanged > 0 ? player0State : null
+                                    }, jsonOptions));
+                                    writer.WriteLine(",");
+
+                                    autoSplitterWritten = autoSplitter;
+                                    playerWritten = player;
+                                }
+                            }
                         }
                     }
+
+                    autoSplitterPrev = autoSplitter;
+                    playerPrev = player;
+
+                    await Task.Delay(
+                        TimeSpan.FromSeconds(Math.Max(Configuration.PollPeriod - timer.Elapsed.TotalSeconds, 0)));
+                    timer.Restart();
                 }
-
-                autoSplitterPrev = autoSplitter;
-                playerPrev = player;
-
-                await Task.Delay(TimeSpan.FromSeconds(Math.Max(Configuration.PollPeriod - timer.Elapsed.TotalSeconds, 0)));
-                timer.Restart();
+            }
+            finally
+            {
+                writer?.Dispose();
             }
 
             return 0;
